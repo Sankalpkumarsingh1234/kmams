@@ -50,8 +50,8 @@ const missingRequired = requiredEnv.filter(key => !process.env[key]);
 if (missingRequired.length > 0) {
   console.error('\n[FATAL] Missing REQUIRED environment variables:');
   missingRequired.forEach(key => console.error(`  - ${key}`));
-  console.error('\nPlease set these variables in .env.local');
-  process.exit(1);
+  console.error('\nPlease set these variables in Vercel or .env.local');
+  // Skip process.exit(1) so Vercel Serverless doesn't permanently crash routing 500s without CORS headers
 }
 
 console.log('[✓] All required environment variables loaded');
@@ -82,10 +82,17 @@ const twilioClient = process.env.TWILIO_ACCOUNT_SID ? twilio(
   process.env.TWILIO_AUTH_TOKEN
 ) : null;
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) 
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
+  : null;
+
+// Add middleware to warn users of missing DB
+app.use((req, res, next) => {
+  if (!supabase && req.url !== '/health') {
+    return res.status(500).json({ error: "Backend Database not configured. Please add SUPABASE_URL to Vercel Environment Variables." });
+  }
+  next();
+});
 
 // ══════════════════════════════════════════════════════════════════════════
 // REGISTER ROUTES
