@@ -33,7 +33,7 @@ function OnboardingScreen({ onNext }) {
       const earningsNum = parseFloat(form.earnings);
       const email = `${form.name.toLowerCase().replace(/\s+/g, "")}@gigshield.work`;
 
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,7 +60,7 @@ function OnboardingScreen({ onNext }) {
       onNext({ ...form, nfiScore, pinData: pinData || { nfi: nfiScore, city: "Your city", zone: "Area", reason: "Average risk" } });
     } catch (err) {
       console.error('Failed to create user:', err);
-      setError(err.message || 'Failed to create user. Please check if backend is running on localhost:3001');
+      setError(err.message || 'Failed to create user. Please check if backend is running on localhost:3001 (or deployed backend)');
     } finally {
       setLoading(false);
     }

@@ -74,7 +74,7 @@ function PolicyScreen({ data, onNext, onBack }) {
             const userPhone = localStorage.getItem('userPhone');
             const tier_data = TIERS.find(t => t.id === selected);
             
-            const response = await fetch('http://localhost:3001/api/policies', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}/api/policies`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -96,7 +96,7 @@ function PolicyScreen({ data, onNext, onBack }) {
             // Send WhatsApp notification if phone available (optional - doesn't block policy creation)
             if (userPhone) {
               try {
-                const notifRes = await fetch('http://localhost:3001/api/notify/policy-activated', {
+                const notifRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}/api/notify/policy-activated`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({

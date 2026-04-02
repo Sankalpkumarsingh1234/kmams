@@ -36,7 +36,7 @@ function DashboardScreen({ data, onBack }) {
           return;
         }
 
-        const response = await fetch(`http://localhost:3001/api/users/${userId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`}/api/users/${userId}`);
         if (response.ok) {
           const user = await response.json();
           setUserData(user);

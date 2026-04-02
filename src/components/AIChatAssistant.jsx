@@ -48,7 +48,7 @@ Keep answers short (2-4 sentences), friendly, in simple English. Use ₹ for cur
 
     try {
       // Call backend Groq API instead of Anthropic
-      const res = await fetch("http://localhost:3001/api/chat", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
