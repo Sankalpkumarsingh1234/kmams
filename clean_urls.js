@@ -1,28 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
-const getCleanUrlConfig = `const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : (import.meta.env.VITE_API_URL || 'http://localhost:3001');`;
+// Force API_BASE/API_URL to be strictly empty in production mode, overriding anything the user might have accidentally set in Vercel environment variables!
+const getCleanUrlConfig = `const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');`;
 
 function cleanFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
   let changed = false;
 
-  // We find anything like:
-  // `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`
-  // `${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`}`
+  // Fix API_BASE
+  if (content.includes('const API_BASE = import.meta.env.PROD')) {
+    content = content.replace(/const API_BASE = import\.meta\.env\.PROD .*/g, getCleanUrlConfig);
+    changed = true;
+  }
   
-  const regex = /\$\{import\.meta\.env\.VITE_API_URL\s*\|\|\s*.*?\}/g;
-  
-  if (regex.test(content)) {
-    content = content.replace(regex, "${API_BASE}");
-    
-    // add import to top if not present, and declare API_BASE after imports
-    if (!content.includes('const API_BASE')) {
-        // find last import
-        const importsEnd = content.lastIndexOf('import ') > -1 ? content.indexOf('\n', content.lastIndexOf('import ')) : 0;
-        
-        content = content.slice(0, importsEnd) + '\n\n' + getCleanUrlConfig + '\n' + content.slice(importsEnd);
-    }
+  // Fix API_URL in client.js specifically
+  if (content.includes('const API_URL = import.meta.env.PROD')) {
+    content = content.replace(/const API_URL = import\.meta\.env\.PROD[\s\S]*?'http:\/\/localhost:3001'\);/g, `const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');`);
     changed = true;
   }
 
@@ -44,4 +38,4 @@ function walk(dir) {
 }
 
 walk('./src');
-console.log('Cleaned up URLs!');
+console.log('Forced production relative URLs!');

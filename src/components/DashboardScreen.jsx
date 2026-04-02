@@ -11,7 +11,7 @@ import PolicyReceipt from "./PolicyReceipt.jsx";
 import WhatsAppScreen from "./WhatsAppScreen.jsx";
 import UPIPaymentFlow from "./UPIPaymentFlow.jsx";
 
-const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
 
 function DashboardScreen({ data, onBack }) {

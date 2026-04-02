@@ -4,7 +4,7 @@ import { TIERS } from "../data.js";
 import { calcPremium } from "../utils.js";
 import Badge from "./Badge.jsx";
 
-const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
 
 function PolicyScreen({ data, onNext, onBack }) {
