@@ -51,7 +51,7 @@ If unsure, direct them to support@gigshield.work`;
     const response = await axios.post(
       GROQ_URL,
       {
-        model: 'mixtral-8x7b-32768',
+        model: 'llama3-8b-8192',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
@@ -71,7 +71,7 @@ If unsure, direct them to support@gigshield.work`;
 
     res.json({
       reply,
-      model: 'mixtral-8x7b-32768',
+      model: 'llama3-8b-8192',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -99,7 +99,7 @@ router.post('/api/chat/health', async (req, res) => {
     const response = await axios.post(
       GROQ_URL,
       {
-        model: 'mixtral-8x7b-32768',
+        model: 'llama3-8b-8192',
         messages: [{ role: 'user', content: 'test' }],
         max_tokens: 5,
       },

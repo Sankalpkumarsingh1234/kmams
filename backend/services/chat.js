@@ -21,7 +21,7 @@ export async function sendChatMessage(userMessage, userContext = {}) {
     const response = await axios.post(
       GROQ_API_URL,
       {
-        model: 'mixtral-8x7b-32768', // Free Groq model
+        model: 'llama3-8b-8192', // Free Groq model
         messages: [
           {
             role: 'system',
