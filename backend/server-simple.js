@@ -407,8 +407,9 @@ app.get('/health', (req, res) => {
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════
 
-app.listen(PORT, () => {
-  console.log(`
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
 ║         🚀 GigShield Backend - SIMPLIFIED                       ║
@@ -430,5 +431,8 @@ app.listen(PORT, () => {
 ║         GET  /health                                            ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
+
+export default app;

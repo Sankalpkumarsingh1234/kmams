@@ -11,6 +11,9 @@ import PolicyReceipt from "./PolicyReceipt.jsx";
 import WhatsAppScreen from "./WhatsAppScreen.jsx";
 import UPIPaymentFlow from "./UPIPaymentFlow.jsx";
 
+const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+
+
 function DashboardScreen({ data, onBack }) {
   const { t } = useLanguage();
   const { name, platform, premium, tier, nfi, pinData, earnings } = data;
@@ -36,7 +39,7 @@ function DashboardScreen({ data, onBack }) {
           return;
         }
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`}/api/users/${userId}`);
+        const response = await fetch(`${API_BASE}`}/api/users/${userId}`);
         if (response.ok) {
           const user = await response.json();
           setUserData(user);

@@ -4,6 +4,9 @@ import { PINCODE_DATA } from "../data.js";
 import StepDots from "./StepDots.jsx";
 import Badge from "./Badge.jsx";
 
+const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_URL || '') : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+
+
 function OnboardingScreen({ onNext }) {
   const { t } = useLanguage();
   const [form, setForm] = useState({ name: "", phone: "", pin: "", platform: "Zomato", earnings: "" });
@@ -33,7 +36,7 @@ function OnboardingScreen({ onNext }) {
       const earningsNum = parseFloat(form.earnings);
       const email = `${form.name.toLowerCase().replace(/\s+/g, "")}@gigshield.work`;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}/api/users`, {
+      const response = await fetch(`${API_BASE}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

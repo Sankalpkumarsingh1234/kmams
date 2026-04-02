@@ -3,7 +3,9 @@
  * Central place to manage all backend API calls
  */
 
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001 (or deployed backend)'}`;
+const API_URL = import.meta.env.PROD 
+  ? (import.meta.env.VITE_API_URL || '') 
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
 export const api = {
   // User Management
