@@ -1,0 +1,278 @@
+// src/i18n/translations.js
+// Hindi & English language support for GigShield
+
+export const translations = {
+  en: {
+    // Onboarding Screen
+    'title': 'Share Your Details',
+    'subtitle': 'We\'ll calculate your personalized protection plan',
+    'yourName': 'Your Name',
+    'platform': 'Active Platform',
+    'operatingPin': 'Operating Pincode',
+    'averageEarnings': 'Average Weekly Earnings',
+    'calculateRisk': 'Calculate My Risk',
+    'pinErrorMessage': 'Pincode not found in our database',
+
+    // Risk Assessment Screen
+    'zoneRisk': 'Zone Risk Factor',
+    'seasonalFactor': 'Seasonal Adjustment',
+    'priorClaimsBonus': 'No-Claims Bonus',
+    'platformExposure': 'Platform Exposure',
+    'standardExposure': 'Standard',
+    'riskProfile': "'s Risk Profile",
+    'basedOnPin': 'Based on location',
+    'hadDisruptionDays': 'experienced',
+    'disruptions': 'service disruptions',
+    'inPast12Months': 'in the last 12 months.',
+    'workersLose': 'Workers typically lose',
+    'withoutCoverage': 'per month without coverage.',
+    'seeMyPlanOptions': 'See My Plan Options',
+
+    // Policy Screen
+    'chooseYourShield': 'Choose Your Coverage Level',
+    'weeklyPricing': 'All plans cover hospitalization up to ₹2,00,000',
+    'perWeek': '/week',
+    'basePremium': 'Base Premium',
+    'nfiSurcharge': 'NFI Surcharge',
+    'noClaimLoyalty': 'Loyalty Discount',
+    'coverageLabel': 'Max Coverage',
+    'activateMyShield': 'Activate My Shield',
+
+    // Dashboard Extended
+    'whatsapp': 'WhatsApp',
+    'weather': 'Weather',
+    'ai': 'AI Assistant',
+    'heat': 'Heat Stress',
+    'map': 'Disruption Map',
+    'dashboard': 'Dashboard',
+    'welcomeBack': 'Welcome back',
+    'active': 'Active',
+    'protected': 'Protected',
+    'thisMonth': 'This Month',
+    'premium': 'Premium',
+    'nfi': 'NFI Score',
+    'highRisk': 'High Risk',
+    'moderate': 'Moderate',
+    'stormWindowAlert': '⚠️ Storm Window Alert',
+    'heavyRainPredicted': 'Heavy rain predicted in your zone',
+    'liveDisruptionFeed': 'Live Disruption Feed',
+    'live': 'Live',
+    'detectingDisruption': 'Detecting disruption...',
+    'payoutProcessed': 'Payout Processed ✓',
+    'simulateDisruption': 'Simulate Weather Disruption',
+    'autoPayoutProcessed': 'Auto-Payout Processed',
+    'trigger': 'Trigger',
+    'upiTransferComplete': 'UPI transfer complete to your bank',
+    'claims': 'Claims',
+    'policy': 'Policy',
+    'liveWeather': 'Live Weather',
+    'askAI': 'Ask AI',
+    'riskMap': 'Risk Map',
+
+    // Onboarding (old keys for backward compatibility)
+    'onboarding.welcome': 'Welcome to GigShield',
+    'onboarding.subtitle': 'Income protection for delivery partners',
+    'onboarding.description': 'Get protected against unexpected disruptions',
+    'onboarding.getStarted': 'Get Started',
+    'onboarding.signIn': 'Already have an account? Sign In',
+
+    // Authentication
+    'auth.email': 'Email',
+    'auth.password': 'Password',
+    'auth.name': 'Full Name',
+    'auth.phone': 'Phone Number',
+    'auth.role': 'Role',
+    'auth.signIn': 'Sign In',
+    'auth.signUp': 'Create Account',
+    'auth.signUp_tab': 'Register',
+    'auth.signIn_tab': 'Sign In',
+    'auth.googleSignIn': 'Continue with Google',
+    'auth.noAccount': "Don't have an account?",
+    'auth.hasAccount': 'Already have an account?',
+
+    // Risk Assessment
+    'risk.title': 'Assess Your Risk',
+    'risk.deliveries': 'Deliveries per week',
+    'risk.hours': 'Hours per day',
+    'risk.area': 'Service Area',
+    'risk.platform': 'Delivery Platform',
+    'risk.weather': 'Weather Risk:',
+    'risk.traffic': 'Traffic Risk:',
+    'risk.continue': 'Continue',
+
+    // Policy
+    'policy.selectTier': 'Choose Your Coverage',
+    'policy.basic': 'Basic',
+    'policy.standard': 'Standard',
+    'policy.premium': 'Premium',
+    'policy.includes': 'Includes',
+    'policy.coverage': 'coverage',
+    'policy.activate': 'Activate Policy',
+
+    // Dashboard
+    'dashboard.overview': 'Overview',
+    'dashboard.claims': 'Claims',
+    'dashboard.payout': 'Payout',
+    'dashboard.profile': 'Profile',
+    'dashboard.claimsHistory': 'Claims History',
+    'dashboard.noClaimsYet': 'No claims yet',
+    'dashboard.lastPayout': 'Last Payout',
+
+    // Payout
+    'payout.triggered': 'Payout Triggered',
+    'payout.sending': 'Sending to your account…',
+    'payout.sent': 'Payout sent successfully',
+    'payout.amount': 'Amount',
+    'payout.reference': 'Reference ID',
+
+    // Payment
+    'payment.pay': 'Pay',
+    'payment.paid': 'Paid',
+    'payment.failed': 'Payment Failed',
+
+    // Insurer Dashboard
+    'insurer.dashboard': 'Insurer Dashboard',
+    'insurer.totalClaims': 'Total Claims',
+    'insurer.fraudScore': 'Fraud Risk Score',
+    'insurer.activePolicies': 'Active Policies',
+    'insurer.payouts': 'Payouts',
+  },
+
+  hi: {
+    // Onboarding Screen
+    'title': 'अपना विवरण साझा करें',
+    'subtitle': 'हम आपकी व्यक्तिगत सुरक्षा योजना की गणना करेंगे',
+    'yourName': 'आपका नाम',
+    'platform': 'सक्रिय प्लेटफॉर्म',
+    'operatingPin': 'ऑपरेटिंग पिनकोड',
+    'averageEarnings': 'औसत साप्ताहिक आय',
+    'calculateRisk': 'मेरा जोखिम की गणना करें',
+    'pinErrorMessage': 'पिनकोड हमारे डेटाबेस में नहीं पाया गया',
+
+    // Risk Assessment Screen
+    'zoneRisk': 'जोन जोखिम कारक',
+    'seasonalFactor': 'मौसमी समायोजन',
+    'priorClaimsBonus': 'कोई दावा बोनस नहीं',
+    'platformExposure': 'प्लेटफॉर्म जोखिम',
+    'standardExposure': 'मानक',
+    'riskProfile': "का जोखिम प्रोफाइल",
+    'basedOnPin': 'स्थान के आधार पर',
+    'hadDisruptionDays': 'का अनुभव था',
+    'disruptions': 'सेवा व्यवधान',
+    'inPast12Months': 'पिछले 12 महीनों में।',
+    'workersLose': 'कर्मचारी आमतौर पर खो देते हैं',
+    'withoutCoverage': 'बिना कवरेज के प्रति माह।',
+    'seeMyPlanOptions': 'मेरे योजना विकल्प देखें',
+
+    // Policy Screen
+    'chooseYourShield': 'अपना कवरेज स्तर चुनें',
+    'weeklyPricing': 'सभी योजनाएं ₹2,00,000 तक अस्पताल की कवरेज करती हैं',
+    'perWeek': '/सप्ताह',
+    'basePremium': 'आधार प्रीमियम',
+    'nfiSurcharge': 'NFI अधिभार',
+    'noClaimLoyalty': 'वफादारी छूट',
+    'coverageLabel': 'अधिकतम कवरेज',
+    'activateMyShield': 'मेरी शील्ड सक्रिय करें',
+
+    // Dashboard Extended
+    'whatsapp': 'व्हाट्सऐप',
+    'weather': 'मौसम',
+    'ai': 'एआई सहायक',
+    'heat': 'तापीय तनाव',
+    'map': 'व्यवधान मानचित्र',
+    'dashboard': 'डैशबोर्ड',
+    'welcomeBack': 'वापस स्वागत है',
+    'active': 'सक्रिय',
+    'protected': 'संरक्षित',
+    'thisMonth': 'इस महीने',
+    'premium': 'प्रीमियम',
+    'nfi': 'NFI स्कोर',
+    'highRisk': 'उच्च जोखिम',
+    'moderate': 'मध्यम',
+    'stormWindowAlert': '⚠️ तूफान विंडो अलर्ट',
+    'heavyRainPredicted': 'आपके क्षेत्र में भारी बारिश की आशंका है',
+    'liveDisruptionFeed': 'लाइव व्यवधान फीड',
+    'live': 'लाइव',
+    'detectingDisruption': 'व्यवधान का पता लगा रहे हैं...',
+    'payoutProcessed': 'भुगतान संसाधित ✓',
+    'simulateDisruption': 'मौसम व्यवधान सिमुलेट करें',
+    'autoPayoutProcessed': 'स्वचालित भुगतान संसाधित',
+    'trigger': 'ट्रिगर',
+    'upiTransferComplete': 'आपके बैंक को UPI स्थानांतरण पूरा',
+    'claims': 'दावे',
+    'policy': 'पॉलिसी',
+    'liveWeather': 'लाइव मौसम',
+    'askAI': 'AIसे पूछें',
+    'riskMap': 'जोखिम मानचित्र',
+
+    // Onboarding (old keys for backward compatibility)
+    'onboarding.welcome': 'GigShield में आपका स्वागत है',
+    'onboarding.subtitle': 'डिलीवरी पार्टनर्स के लिए आय सुरक्षा',
+    'onboarding.description': 'अप्रत्याशित व्यवधानों से सुरक्षित रहें',
+    'onboarding.getStarted': 'शुरू करें',
+    'onboarding.signIn': 'पहले से खाता है? साइन इन करें',
+
+    // Authentication
+    'auth.email': 'ईमेल',
+    'auth.password': 'पासवर्ड',
+    'auth.name': 'पूरा नाम',
+    'auth.phone': 'फोन नंबर',
+    'auth.role': 'भूमिका',
+    'auth.signIn': 'साइन इन करें',
+    'auth.signUp': 'खाता बनाएं',
+    'auth.signUp_tab': 'पंजीकरण',
+    'auth.signIn_tab': 'साइन इन',
+    'auth.googleSignIn': 'Google से जारी रखें',
+    'auth.noAccount': 'खाता नहीं है?',
+    'auth.hasAccount': 'पहले से खाता है?',
+
+    // Risk Assessment
+    'risk.title': 'अपना जोखिम मूल्यांकन करें',
+    'risk.deliveries': 'प्रति सप्ताह डिलीवरी',
+    'risk.hours': 'प्रति दिन घंटे',
+    'risk.area': 'सेवा क्षेत्र',
+    'risk.platform': 'डिलीवरी प्लेटफॉर्म',
+    'risk.weather': 'मौसम जोखिम:',
+    'risk.traffic': 'ट्रैफिक जोखिम:',
+    'risk.continue': 'जारी रखें',
+
+    // Policy
+    'policy.selectTier': 'अपनी कवरेज चुनें',
+    'policy.basic': 'बेसिक',
+    'policy.standard': 'स्टैंडर्ड',
+    'policy.premium': 'प्रीमियम',
+    'policy.includes': 'शामिल है',
+    'policy.coverage': 'कवरेज',
+    'policy.activate': 'पॉलिसी सक्रिय करें',
+
+    // Dashboard
+    'dashboard.overview': 'अवलोकन',
+    'dashboard.claims': 'दावे',
+    'dashboard.payout': 'भुगतान',
+    'dashboard.profile': 'प्रोफाइल',
+    'dashboard.claimsHistory': 'दावों का इतिहास',
+    'dashboard.noClaimsYet': 'अभी कोई दावा नहीं',
+    'dashboard.lastPayout': 'अंतिम भुगतान',
+
+    // Payout
+    'payout.triggered': 'भुगतान ट्रिगर हुआ',
+    'payout.sending': 'आपके खाते में भेज रहे हैं...',
+    'payout.sent': 'भुगतान सफलतापूर्वक भेजा गया',
+    'payout.amount': 'राशि',
+    'payout.reference': 'संदर्भ ID',
+
+    // Payment
+    'payment.pay': 'भुगतान करें',
+    'payment.paid': 'भुगतान किया गया',
+    'payment.failed': 'भुगतान विफल',
+
+    // Insurer Dashboard
+    'insurer.dashboard': 'बीमा कंपनी डैशबोर्ड',
+    'insurer.totalClaims': 'कुल दावे',
+    'insurer.fraudScore': 'धोखाधड़ी जोखिम स्कोर',
+    'insurer.activePolicies': 'सक्रिय पॉलिसियाँ',
+    'insurer.payouts': 'भुगतान',
+  },
+};
+
+export const defaultLanguage = 'en';
