@@ -39,7 +39,7 @@ function DashboardScreen({ data, onBack }) {
           return;
         }
 
-        const response = await fetch(`${API_BASE}`}/api/users/${userId}`);
+        const response = await fetch(`${API_BASE}/api/users/${userId}`);
         if (response.ok) {
           const user = await response.json();
           setUserData(user);
