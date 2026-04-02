@@ -21,8 +21,8 @@ router.post('/api/chat', async (req, res) => {
     // If Groq not configured, return helpful fallback
     if (!GROQ_API_KEY) {
       return res.status(200).json({
-        reply: 'Hi! 👋 I\'m your GigShield assistant. For now, I\'m in demo mode. Ask me about coverage, claims, or payouts!',
-        model: 'demo',
+        reply: '⚠️ [System Error]: The GROQ_API_KEY environment variable is currently completely missing or empty on Vercel! Please add your Groq API Key to the Vercel Dashboard Environment Variables and redeploy.',
+        model: 'error-missing-key',
         timestamp: new Date().toISOString(),
       });
     }
@@ -75,12 +75,14 @@ If unsure, direct them to support@gigshield.work`;
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Groq API error:', error.message);
+    console.error('Groq API error:', error.response?.data || error.message);
 
-    // Fallback response if Groq fails
-    res.status(500).json({
-      error: 'Chat service temporarily unavailable',
-      fallback: 'This appears to be about GigShield. Please contact support@gigshield.work for detailed assistance.',
+    const errorMessage = error.response?.data?.error?.message || error.message;
+    // Return 200 so the frontend cleanly displays the error in the chat window to the user
+    res.status(200).json({
+      reply: `[System]: Groq AI is failing to respond. Error: ${errorMessage}`,
+      model: 'error-fallback',
+      timestamp: new Date().toISOString(),
     });
   }
 });
