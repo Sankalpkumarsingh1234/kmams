@@ -1,17 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { INSURER_STATS, ZONE_RISK_MAP } from "../data.js";
 import FraudScoreVisualiser from "./FraudScoreVisualiser.jsx";
 import Badge from "./Badge.jsx";
 
+const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
+
 function InsurerDashboard({ onBack }) {
   const [insurerTab, setInsurerTab] = useState("overview");
-  const [fraudExpanded, setFraudExpanded] = useState(false);
-
-  const fraudCases = [
-    { id: "FRD-041", pin: "600028", worker: "Anand S.", reason: "GPS outside flood zone at trigger time", risk: "High" },
-    { id: "FRD-042", pin: "110001", worker: "Priya M.", reason: "3 claims in 8 days — anomaly detected", risk: "Medium" },
-    { id: "FRD-043", pin: "400053", worker: "Mohan R.", reason: "Duplicate trigger submission", risk: "High" },
-  ];
+  const [claims, setClaims] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const insurerTabs = [
     { id: "overview", label: "Overview" },
@@ -27,6 +25,53 @@ function InsurerDashboard({ onBack }) {
     { name: "Supabase DB", status: "Healthy", latency: "85ms" },
     { name: "Twilio WhatsApp", status: "Warning", latency: "1.2s" },
   ];
+
+  // Fetch real claims
+  const fetchClaims = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/claims`);
+      if (!res.ok) throw new Error("Failed to fetch claims");
+      const data = await res.json();
+      setClaims(data);
+    } catch (err) {
+      console.error(err);
+      setError("Could not load real-time claims.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (insurerTab === "claims") {
+      fetchClaims();
+    }
+  }, [insurerTab]);
+
+  const updateClaimStatus = async (id, status) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/claims/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        // Refresh local state
+        setClaims(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+        
+        // Also simulate WhatsApp if approved
+        if (status === 'paid') {
+          const claim = claims.find(c => c.id === id);
+          if (claim) {
+            console.log(`[SIMULATION] WhatsApp sent to user ${claim.user_id}: Claim Approved!`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update claim status");
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#F5F0EB", padding: 16, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
@@ -46,7 +91,7 @@ function InsurerDashboard({ onBack }) {
         {/* KPI Row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 14 }}>
           {[
-            { label: "Active policies", value: INSURER_STATS.activePolicies.toLocaleString(), sub: "Total", color: "#4CAF82" },
+            { label: "Active policies", value: (INSURER_STATS.activePolicies + claims.length).toLocaleString(), sub: "Total", color: "#4CAF82" },
             { label: "Premium Week", value: `₹${(INSURER_STATS.premiumThisWeek / 1000).toFixed(0)}K`, sub: "collected", color: "#FF6B35" },
             { label: "Claims Paid", value: `₹${(INSURER_STATS.claimsPaid / 1000).toFixed(0)}K`, sub: "approved", color: "#F59E0B" },
             { label: "Loss Ratio", value: `${INSURER_STATS.lossRatio}%`, sub: "healthy", color: "#4CAF82" },
@@ -89,21 +134,39 @@ function InsurerDashboard({ onBack }) {
         )}
 
         {insurerTab === "claims" && (
-          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden" }}>
-             {[
-                { id: "CLM089", worker: "Rahul V.", type: "Heat Stress", amount: "₹450", time: "18h ago", status: "Flagged" },
-                { id: "CLM090", worker: "Deepak S.", type: "Platform Outage", amount: "₹280", time: "22h ago", status: "Pending" },
-                { id: "CLM091", worker: "Kunal P.", type: "Heavy Rain", amount: "₹520", time: "1d ago", status: "Pending" },
-              ].map((c, i) => (
-                <div key={i} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", minHeight: 100 }}>
+             {loading && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>Loading live claims...</div>}
+             {error && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#EF4444" }}>{error}</div>}
+             {!loading && !error && claims.length === 0 && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>No active claims detected.</div>}
+             
+             {claims.map((c, i) => (
+                <div key={c.id} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{c.id}</span>
-                      <span style={{ fontSize: 10, color: "#6B6258" }}>{c.worker} · {c.type}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{c.id.substring(0, 8).toUpperCase()}</span>
+                      <span style={{ fontSize: 10, color: "#6B6258" }}>{c.users?.name || "Rider"} · {c.trigger}</span>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1512" }}>{c.amount}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1512" }}>₹{c.amount_triggered || c.amount}</div>
                   </div>
-                  <button style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#4CAF82", color: "#fff", fontSize: 11, fontWeight: 700 }}>Approve</button>
+                  
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {c.status === 'paid' ? (
+                      <Badge text="PAID" color="#4CAF82" bg="#E8F5EE" />
+                    ) : c.status === 'rejected' ? (
+                      <Badge text="REJECTED" color="#EF4444" bg="#FEE2E2" />
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => updateClaimStatus(c.id, 'rejected')}
+                          style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #EF4444", background: "transparent", color: "#EF4444", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                        >Reject</button>
+                        <button 
+                          onClick={() => updateClaimStatus(c.id, 'paid')}
+                          style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#4CAF82", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                        >Approve</button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
           </div>
@@ -111,31 +174,6 @@ function InsurerDashboard({ onBack }) {
 
         {insurerTab === "fraud" && <FraudScoreVisualiser />}
 
-        {insurerTab === "zones" && (
-           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#FAFAF8" }}>
-                    {["City", "Pin", "NFI", "Risk"].map(h => (
-                      <th key={h} style={{ padding: "10px", fontSize: 10, textAlign: "left", borderBottom: "1px solid #E0D9D0" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {ZONE_RISK_MAP.slice(0, 8).map((z, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid #F5F0EB" }}>
-                      <td style={{ padding: "10px", fontSize: 12, fontWeight: 600 }}>{z.city}</td>
-                      <td style={{ padding: "10px", fontSize: 11 }}>{z.pin}</td>
-                      <td style={{ padding: "10px", fontSize: 11, fontWeight: 700 }}>{z.nfi}</td>
-                      <td style={{ padding: "10px" }}><Badge text="High" color="#EF4444" bg="#FEE2E2" /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-           </div>
-        )}
-
-        {/* Forecast Tab — SVG Chart */}
         {insurerTab === "forecast" && (
           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", padding: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>

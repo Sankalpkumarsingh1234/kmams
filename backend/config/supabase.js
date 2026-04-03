@@ -231,3 +231,45 @@ export async function getAllActiveUsers() {
     throw error;
   }
 }
+
+/**
+ * Get all claims (Admin)
+ */
+export async function getAllClaims() {
+  try {
+    const { data: claims, error } = await getSupabaseClient()
+      .from('claims')
+      .select('*, users(name, platform, pin_code)')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+    return claims || [];
+  } catch (error) {
+    console.error('getAllClaims error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update claim status (Admin)
+ */
+export async function updateClaimStatus(claimId, status) {
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from('claims')
+      .update({ 
+        status, 
+        paid_at: status === 'paid' ? new Date().toISOString() : null 
+      })
+      .eq('id', claimId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('updateClaimStatus error:', error);
+    throw error;
+  }
+}

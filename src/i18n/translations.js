@@ -68,6 +68,12 @@ export const translations = {
     'liveWeather': 'Live Weather',
     'askAI': 'Ask AI',
     'riskMap': 'Risk Map',
+    'predictedIncome': 'Predicted Income vs Risk',
+    'next7Days': 'Next 7 days',
+    'highestRiskLabel': 'High Risk Wed-Thu',
+    'highDisruptionZone': 'HIGH DISRUPTION ZONE',
+    'shieldActiveNote': 'Your shielding is fully active for this high-risk area.',
+    'shieldFillProb': 'Shield fill probability:',
 
     // Onboarding (old keys for backward compatibility)
     'onboarding.welcome': 'Welcome to GigShield',
@@ -204,6 +210,12 @@ export const translations = {
     'liveWeather': 'लाइव मौसम',
     'askAI': 'AIसे पूछें',
     'riskMap': 'जोखिम मानचित्र',
+    'predictedIncome': 'पूर्वानुमानित आय बनाम जोखिम',
+    'next7Days': 'अगले 7 दिन',
+    'highestRiskLabel': 'बुधवार-गुरुवार को उच्च जोखिम',
+    'highDisruptionZone': 'उच्च व्यवधान क्षेत्र',
+    'shieldActiveNote': 'इस उच्च जोखिम वाले क्षेत्र के लिए आपकी सुरक्षा पूरी तरह से सक्रिय है।',
+    'shieldFillProb': 'शील्ड भरने की संभावना:',
 
     // Onboarding (old keys for backward compatibility)
     'onboarding.welcome': 'GigShield में आपका स्वागत है',

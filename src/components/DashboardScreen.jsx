@@ -33,6 +33,11 @@ function DashboardScreen({ data, onBack }) {
     protected: { title: "Protected Amount", desc: "The total amount of income GigShield has protected you for this month through automated payouts." }
   };
 
+  // Dynamic dashboard background based on risk
+  const dashboardBg = nfi > 75 
+    ? "linear-gradient(to bottom, #FFF3CD, #fff 150px)" 
+    : "transparent";
+
   function simulateDisruption() {
     setSimulating(true);
     setTimeout(() => {
@@ -60,7 +65,7 @@ function DashboardScreen({ data, onBack }) {
   ];
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", minHeight: "100%", background: dashboardBg, transition: "background 0.5s ease", borderRadius: 20 }}>
       {/* Tooltip Modal Overlay */}
       {showInfo && (
         <div onClick={() => setShowInfo(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -108,6 +113,15 @@ function DashboardScreen({ data, onBack }) {
       {/* Dashboard Tab */}
       {activeTab === "dashboard" && (
         <>
+          {nfi > 75 && (
+            <div style={{ padding: "10px 14px", background: "#EF4444", borderRadius: 12, marginBottom: 12, display: "flex", alignItems: "center", gap: 10, color: "#fff", animation: "pulse 2s infinite" }}>
+               <div style={{ fontSize: 20 }}>⚠️</div>
+               <div>
+                  <div style={{ fontSize: 11, fontWeight: 700 }}>{t('highDisruptionZone')}</div>
+                  <div style={{ fontSize: 10, opacity: 0.9 }}>{t('shieldActiveNote')}</div>
+               </div>
+            </div>
+          )}
           {stormAlert && (
             <div style={{ padding: "11px 13px", background: "linear-gradient(135deg,#FFF3CD,#FFE4A0)", border: "1.5px solid #F59E0B", borderRadius: 12, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -135,6 +149,44 @@ function DashboardScreen({ data, onBack }) {
                 <div style={{ fontSize: 9, color: "#9B9589" }}>{s.sub}</div>
               </div>
             ))}
+          </div>
+
+          {/* Predictive Income Chart (SVG) */}
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E0D9D0", padding: "14px", marginBottom: 12, boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
+                <div>
+                   <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1512" }}>{t('predictedIncome')}</div>
+                   <div style={{ fontSize: 10, color: "#9B9589" }}>{t('next7Days')} · {pinData?.city}</div>
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4CAF82" }} />
+                      <span style={{ fontSize: 9 }}>Income</span>
+                   </div>
+                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF6B35" }} />
+                      <span style={{ fontSize: 9 }}>Risk</span>
+                   </div>
+                </div>
+             </div>
+             
+             <div style={{ width: "100%", height: 100 }}>
+                <svg viewBox="0 0 400 100" style={{ width: "100%", height: "100%", overflow: "visible" }}>
+                   {[0, 25, 50, 75, 100].map(v => (
+                      <line key={v} x1="0" y1={v} x2="400" y2={v} stroke="#FAFAF8" strokeWidth="1" />
+                   ))}
+                   <path d="M0,80 L60,75 L120,78 L180,30 L240,40 L300,75 L360,70 L400,72" fill="none" stroke="#4CAF82" strokeWidth="3" strokeLinecap="round" />
+                   <path d="M0,95 L60,90 L120,85 L180,45 L240,55 L300,85 L360,92 L400,90" fill="none" stroke="#FF6B35" strokeWidth="2" strokeDasharray="4,3" strokeLinecap="round" />
+                   <path d="M160,35 L200,38 L240,45 L220,50 L180,45 Z" fill="#E8F5EE" stroke="none" opacity="0.6" />
+                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, i) => (
+                      <text key={day} x={i * 60 + 20} y="115" fontSize="9" fill="#9B9589" textAnchor="middle">{day}</text>
+                   ))}
+                </svg>
+             </div>
+             <div style={{ marginTop: 22, paddingTop: 10, borderTop: "1px solid #FAFAF8", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: 10, color: "#6B6258" }}>{t('shieldFillProb')} <span style={{ fontWeight: 700, color: "#4CAF82" }}>98.4%</span></div>
+                <div style={{ fontSize: 10, color: "#FF6B35", fontWeight: 700 }}>{t('highestRiskLabel')}</div>
+             </div>
           </div>
 
           {/* Simulation Button */}

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   logClaim,
   getUserClaims,
+  getAllClaims,
+  updateClaimStatus,
 } from '../config/supabase.js';
 
 const router = Router();
@@ -49,6 +51,41 @@ router.get('/claims/user/:userId', async (req, res) => {
     res.json({ claims, count: claims.length });
   } catch (error) {
     console.error('GET /api/claims/user/:userId error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/claims
+ * Fetch ALL claims (Admin)
+ */
+router.get('/claims', async (req, res) => {
+  try {
+    const claims = await getAllClaims();
+    res.json(claims);
+  } catch (error) {
+    console.error('GET /api/claims error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PATCH /api/claims/:id
+ * Update claim status (Approve/Reject)
+ */
+router.patch('/claims/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ error: 'claim ID and status are required' });
+    }
+
+    const updated = await updateClaimStatus(id, status);
+    res.json(updated);
+  } catch (error) {
+    console.error('PATCH /api/claims/:id error:', error);
     res.status(500).json({ error: error.message });
   }
 });
