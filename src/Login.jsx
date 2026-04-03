@@ -16,8 +16,30 @@ const ctaBtn = { width: "100%", padding: "14px", borderRadius: 12, border: "none
 
 // Screen transition animation - smoother dual fade
 const screenAnimationStyle = {
-  animation: "fadeInUp 0.4s ease-out forwards",
+  animation: "fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
 };
+
+// CSS for animations
+const GlobalStyle = () => (
+  <style>{`
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.5; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(0.95); opacity: 0.5; }
+    }
+    .fade-mask {
+      mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    }
+  `}</style>
+);
 
 // Mobile detection hook
 function useIsMobile() {
@@ -161,7 +183,7 @@ function AppContent() {
         }}>
           {step < 4 && <StepDots current={step} total={4} />}
           
-          <div style={screenAnimationStyle}>
+          <div style={screenAnimationStyle} key={step}>
             {step === 0 && <OnboardingScreen onNext={goNext} />}
             {step === 1 && <RiskScreen data={userData} onNext={goNext} onBack={goBack} />}
             {step === 2 && <PolicyScreen data={userData} onNext={goNext} onBack={goBack} />}
@@ -177,6 +199,7 @@ export default function GigShield() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
+        <GlobalStyle />
         <AppContent />
       </LanguageProvider>
     </ErrorBoundary>

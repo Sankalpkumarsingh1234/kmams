@@ -11,21 +11,21 @@ const router = Router();
  * POST /api/users
  * Create or get existing user
  */
-router.post('/api/users', async (req, res) => {
+router.post('/users', async (req, res) => {
   try {
     const {
       email,
       name,
       platform,
       pin_code,
-      earnings_weekly,
-      nfi_score,
+      earnings,
+      nfi,
     } = req.body;
 
     // Validate required fields
-    if (!email || !name || !platform || !pin_code || !earnings_weekly || !nfi_score) {
+    if (!email || !name || !platform || !pin_code || !earnings || !nfi) {
       return res.status(400).json({
-        error: 'Missing required fields: email, name, platform, pin_code, earnings_weekly, nfi_score',
+        error: 'Missing required fields: email, name, platform, pin_code, earnings, nfi',
       });
     }
 
@@ -34,8 +34,8 @@ router.post('/api/users', async (req, res) => {
       name,
       platform,
       pin_code,
-      earnings_weekly,
-      nfi_score,
+      earnings,
+      nfi,
     });
 
     res.status(user.isNew ? 201 : 200).json({
@@ -53,7 +53,7 @@ router.post('/api/users', async (req, res) => {
  * GET /api/users/:userId
  * Fetch user profile with policy and claims
  */
-router.get('/api/users/:userId', async (req, res) => {
+router.get('/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -74,7 +74,7 @@ router.get('/api/users/:userId', async (req, res) => {
  * GET /api/users/:userId/claims
  * Fetch all claims for a user
  */
-router.get('/api/users/:userId/claims', async (req, res) => {
+router.get('/users/:userId/claims', async (req, res) => {
   try {
     const { userId } = req.params;
 

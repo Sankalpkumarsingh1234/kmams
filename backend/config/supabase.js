@@ -101,8 +101,8 @@ export async function createUser(userData) {
         name,
         platform,
         pin_code,
-        earnings_weekly,
-        nfi_score,
+        earnings,
+        nfi,
       }])
       .select()
       .single();
@@ -135,7 +135,7 @@ export async function createPolicy(policyData) {
       .insert([{
         user_id,
         tier,
-        premium_weekly,
+        premium,
         max_payout,
         active: true,
       }])
@@ -164,7 +164,7 @@ export async function logClaim(claimData) {
         user_id,
         policy_id,
         trigger,
-        amount_triggered,
+        amount,
         weather_data,
         status: 'paid',
         paid_at: new Date().toISOString(),

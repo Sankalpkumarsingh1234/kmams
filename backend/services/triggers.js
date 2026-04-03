@@ -142,16 +142,16 @@ export async function checkWeatherTriggers(pinCode) {
       console.warn('Weather logging failed:', logErr.message);
     }
 
-    // Check which triggers were hit
-    const triggered = [];
-    if (rainMM > THRESHOLDS.rain) {
-      triggered.push({ type: 'rain', value: rainMM });
-    }
-    if (heatIndex > THRESHOLDS.heat) {
-      triggered.push({ type: 'heat', value: heatIndex });
-    }
-    if (aqiScore > THRESHOLDS.aqi) {
-      triggered.push({ type: 'aqi', value: aqiScore });
+    // If triggers were hit, log them and simulate WhatsApp
+    for (const trigger of triggered) {
+      console.log(`[TRIGGER] ${trigger.type.toUpperCase()} hit in ${pinCode}: ${trigger.value}`);
+      
+      // Simulate WhatsApp Notification (P4 Task)
+      try {
+        await simulateWhatsAppNotification(pinCode, trigger);
+      } catch (waErr) {
+        console.warn('WhatsApp simulation failed:', waErr.message);
+      }
     }
 
     return {
@@ -167,15 +167,21 @@ export async function checkWeatherTriggers(pinCode) {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error(`checkWeatherTriggers for ${pinCode} failed:`, error.message);
-    // Return gracefully instead of crashing
-    return {
-      triggered: [],
-      weather: { temp: 30, rainMM: 0, heatIndex: 32, aqi: 100, location: 'Unknown', isFallback: true },
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    };
+    // ... error handling
   }
+}
+
+/**
+ * Simulate WhatsApp Notification via Twilio sandbox (P4 Task Mock)
+ */
+async function simulateWhatsAppNotification(pinCode, trigger) {
+  const message = `🛡️ GigShield: Payout Triggered! ${trigger.type.toUpperCase()} threshold exceeded in your zone (${pinCode}). Your automated payout is being processed via UPI.`;
+  console.log(`[WHATSAPP SENT] To rider in ${pinCode}: ${message}`);
+  
+  // In a real app, this would call Twilio API:
+  // client.messages.create({ from: 'whatsapp:+14155238886', to: 'whatsapp:+91...', body: message });
+  
+  return true;
 }
 
 /**
