@@ -10,33 +10,25 @@ const TIERS = {
   premium: { base: 99, max_payout: 500000 },
 };
 
-/**
- * POST /api/policies
- * Create or update policy for user
- */
 router.post('/policies', async (req, res) => {
   try {
-    const { user_id, tier, premium, max_payout } = req.body;
+    const { user_id, tier, premium_weekly, max_payout } = req.body; // REVERTED premium -> premium_weekly
 
-    // Validate tier
     if (!TIERS[tier]) {
       return res.status(400).json({
         error: `Invalid tier. Must be one of: ${Object.keys(TIERS).join(', ')}`,
       });
     }
 
-    if (!user_id) {
-      return res.status(400).json({ error: 'user_id is required' });
-    }
+    if (!user_id) return res.status(400).json({ error: 'user_id is required' });
 
-    // Use provided premium and payout, or fall back to defaults
-    const finalPremium = premium || TIERS[tier].base;
+    const finalPremium = premium_weekly || TIERS[tier].base;
     const finalPayout = max_payout || TIERS[tier].max_payout;
 
     const policy = await createPolicy({
       user_id,
       tier,
-      premium: finalPremium,
+      premium_weekly: finalPremium,
       max_payout: finalPayout,
     });
 
@@ -45,7 +37,7 @@ router.post('/policies', async (req, res) => {
       id: policy.id,
       policy_id: policy.id,
       tier,
-      premium: finalPremium,
+      premium_weekly: finalPremium,
       max_payout: finalPayout,
     });
   } catch (error) {
@@ -54,10 +46,6 @@ router.post('/policies', async (req, res) => {
   }
 });
 
-/**
- * GET /api/tiers
- * Get all tier definitions
- */
 router.get('/tiers', (req, res) => {
   res.json(TIERS);
 });

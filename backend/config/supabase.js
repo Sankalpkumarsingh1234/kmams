@@ -23,7 +23,7 @@ export function getSupabaseClient() {
 
 export { getSupabaseClient as supabase };
 
-// ============ Helper Functions (ALIGNED WITH P3 SQL SCHEMA) ============
+// ============ Helper Functions (REVERTED TO WORKING NAMES) ============
 
 /**
  * Get user profile with active policy and claims
@@ -74,12 +74,11 @@ export async function createUser(userData) {
     name,
     platform,
     pin_code,
-    earnings, // FIXED: earnings_weekly -> earnings
-    nfi      // FIXED: nfi_score -> nfi
+    earnings_weekly, // REVERTED
+    nfi_score       // REVERTED
   } = userData;
 
   try {
-    // Check if user exists
     const { data: existing } = await getSupabaseClient()
       .from('users')
       .select('id')
@@ -90,7 +89,6 @@ export async function createUser(userData) {
       return { id: existing.id, isNew: false };
     }
 
-    // Create new user
     const { data: newUser, error } = await getSupabaseClient()
       .from('users')
       .insert([{
@@ -98,8 +96,8 @@ export async function createUser(userData) {
         name,
         platform,
         pin_code,
-        earnings,
-        nfi,
+        earnings_weekly,
+        nfi_score,
       }])
       .select()
       .single();
@@ -117,22 +115,20 @@ export async function createUser(userData) {
  * Create policy for user
  */
 export async function createPolicy(policyData) {
-  const { user_id, tier, premium, max_payout } = policyData; // FIXED: premium_weekly -> premium
+  const { user_id, tier, premium_weekly, max_payout } = policyData; // REVERTED
 
   try {
-    // Deactivate old policies
     await getSupabaseClient()
       .from('policies')
       .update({ active: false })
       .eq('user_id', user_id);
 
-    // Create new policy
     const { data: policy, error } = await getSupabaseClient()
       .from('policies')
       .insert([{
         user_id,
         tier,
-        premium,
+        premium_weekly,
         max_payout,
         active: true,
       }])
@@ -152,7 +148,7 @@ export async function createPolicy(policyData) {
  * Log a claim trigger
  */
 export async function logClaim(claimData) {
-  const { user_id, policy_id, trigger, amount, weather_data } = claimData; // FIXED: amount_triggered -> amount
+  const { user_id, policy_id, trigger, amount_triggered, weather_data } = claimData; // REVERTED
 
   try {
     const { data: claim, error } = await getSupabaseClient()
@@ -161,7 +157,7 @@ export async function logClaim(claimData) {
         user_id,
         policy_id,
         trigger,
-        amount,
+        amount_triggered,
         weather_data,
         status: 'paid',
         paid_at: new Date().toISOString(),
@@ -226,7 +222,7 @@ export async function getAllActiveUsers() {
   try {
     const { data: users, error } = await getSupabaseClient()
       .from('users')
-      .select('id, email, name, pin_code, earnings, nfi'); // FIXED: earnings_weekly/nfi_score -> earnings/nfi
+      .select('id, email, name, pin_code, earnings_weekly, nfi_score'); // REVERTED
 
     if (error) throw error;
     return users || [];

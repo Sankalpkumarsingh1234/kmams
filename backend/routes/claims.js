@@ -6,24 +6,19 @@ import {
 
 const router = Router();
 
-/**
- * POST /api/claims
- * Log a new claim (manually or via trigger)
- */
 router.post('/claims', async (req, res) => {
   try {
     const {
       user_id,
       policy_id,
       trigger,
-      amount,
+      amount_triggered, // REVERTED amount -> amount_triggered
       weather_data,
     } = req.body;
 
-    // Validate required fields
-    if (!user_id || !trigger || !amount) {
+    if (!user_id || !trigger || !amount_triggered) {
       return res.status(400).json({
-        error: 'Missing required fields: user_id, trigger, amount',
+        error: 'Missing required fields: user_id, trigger, amount_triggered',
       });
     }
 
@@ -31,7 +26,7 @@ router.post('/claims', async (req, res) => {
       user_id,
       policy_id,
       trigger,
-      amount,
+      amount_triggered,
       weather_data,
     });
 
@@ -46,20 +41,11 @@ router.post('/claims', async (req, res) => {
   }
 });
 
-/**
- * GET /api/claims/user/:userId
- * Fetch all claims for a specific user
- */
 router.get('/claims/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
     const claims = await getUserClaims(userId);
-
     res.json({ claims, count: claims.length });
   } catch (error) {
     console.error('GET /api/claims/user/:userId error:', error);

@@ -27,17 +27,13 @@ function OnboardingScreen({ onNext }) {
 
   const handleCreateUser = async () => {
     if (!valid) return;
-    
     setLoading(true);
     setError("");
     const apiUrl = `${API_BASE}/api/users`;
-    
     try {
-      const nfi = pinData?.nfi || 55;
-      const earnings = parseFloat(form.earnings);
+      const nfi_score = pinData?.nfi || 55; // REVERTED
+      const earnings_weekly = parseFloat(form.earnings); // REVERTED
       const email = `${form.name.toLowerCase().replace(/\s+/g, "")}@gigshield.work`;
-
-      console.log(`Connecting to: ${apiUrl}`);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -47,35 +43,27 @@ function OnboardingScreen({ onNext }) {
           name: form.name,
           platform: form.platform,
           pin_code: form.pin,
-          earnings,
-          nfi,
+          earnings_weekly, // REVERTED
+          nfi_score,       // REVERTED
         }),
       });
 
-      // Handle non-JSON responses (prevents "Unexpected token <" crash)
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        console.error("Non-JSON response received:", text.substring(0, 200));
-        throw new Error(`Server returned non-JSON response (likely a 404 or backend crash). Status: ${response.status}`);
+        throw new Error(`Server returned non-JSON response. Status: ${response.status}`);
       }
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `Server error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(data.error || `Server error: ${response.status}`);
 
       localStorage.setItem('userId', data.id);
       localStorage.setItem('userName', form.name);
       localStorage.setItem('userPhone', form.phone);
       localStorage.setItem('userPin', form.pin);
-      localStorage.setItem('nfiScore', nfi);
-      
-      onNext({ ...form, nfiScore: nfi, pinData: pinData || { nfi, city: "Your city", zone: "Area", reason: "Average risk" } });
+      localStorage.setItem('nfiScore', nfi_score);
+      onNext({ ...form, nfiScore: nfi_score, pinData: pinData || { nfi: nfi_score, city: "Your city", zone: "Area", reason: "Average risk" } });
     } catch (err) {
-      console.error('API Error:', err);
-      setError(`${err.message} (URL: ${apiUrl})`);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -89,43 +77,39 @@ function OnboardingScreen({ onNext }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <label style={labelStyle}>
           <span style={labelText}>{t('yourName')}</span>
-          <input style={inputStyle} placeholder="e.g. Ravi Kumar" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <input style={inputStyle} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
         </label>
         <label style={labelStyle}>
           <span style={labelText}>WhatsApp Number</span>
-          <input style={inputStyle} placeholder="e.g. +919369889575" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-          <div style={{ fontSize: 12, color: "#6B6258", marginTop: 6 }}>Include +91 for India</div>
+          <input style={inputStyle} placeholder="+91..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
         </label>
         <label style={labelStyle}>
           <span style={labelText}>{t('platform')}</span>
           <div style={{ display: "flex", gap: 8 }}>
             {["Zomato", "Swiggy"].map(p => (
-              <button key={p} onClick={() => setForm(f => ({ ...f, platform: p }))} style={{ flex: 1, padding: "10px", borderRadius: 10, border: "1.5px solid", borderColor: form.platform === p ? "#FF6B35" : "#E0D9D0", background: form.platform === p ? "#FFF0EB" : "#FAFAF8", color: form.platform === p ? "#FF6B35" : "#6B6258", fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "all 0.2s" }}>{p}</button>
+              <button key={p} onClick={() => setForm(f => ({ ...f, platform: p }))} style={{ flex: 1, padding: "10px", borderRadius: 10, border: "1.5px solid", borderColor: form.platform === p ? "#FF6B35" : "#E0D9D0", background: form.platform === p ? "#FFF0EB" : "#FAFAF8", color: form.platform === p ? "#FF6B35" : "#6B6258", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>{p}</button>
             ))}
           </div>
         </label>
         <label style={labelStyle}>
           <span style={labelText}>{t('operatingPin')}</span>
-          <input style={inputStyle} placeholder="e.g. 600001" maxLength={6} value={form.pin} onChange={e => handlePin(e.target.value.replace(/\D/g, ""))} />
-          {pinData && <div style={{ marginTop: 6, padding: "8px 12px", background: "#E8F5EE", borderRadius: 8, fontSize: 12, color: "#2D6B4A" }}>📍 {pinData.zone}, {pinData.city} — {pinData.reason}</div>}
-          {pinError && <div style={{ marginTop: 6, fontSize: 12, color: "#B45309" }}>{pinError}</div>}
+          <input style={inputStyle} value={form.pin} maxLength={6} onChange={e => handlePin(e.target.value.replace(/\D/g, ""))} />
+          {pinData && <div style={{ marginTop: 6, fontSize: 12, color: "#2D6B4A" }}>📍 {pinData.zone}, {pinData.city}</div>}
         </label>
         <label style={labelStyle}>
           <span style={labelText}>{t('averageEarnings')}</span>
-          <input style={inputStyle} placeholder="e.g. 6000" type="number" value={form.earnings} onChange={e => setForm(f => ({ ...f, earnings: e.target.value }))} />
+          <input style={inputStyle} type="number" value={form.earnings} onChange={e => setForm(f => ({ ...f, earnings: e.target.value }))} />
         </label>
       </div>
-      {error && <div style={{ marginTop: 16, padding: 12, background: "#FEE2E2", borderRadius: 8, color: "#DC2626", fontSize: 13, border: "1px solid #FECACA" }}>{error}</div>}
-      <button onClick={handleCreateUser} disabled={!valid || loading} style={{ ...ctaBtn, opacity: (valid && !loading) ? 1 : 0.45, marginTop: 28 }}>
-        {loading ? 'Creating account...' : t('calculateRisk')}
-      </button>
+      {error && <div style={{ marginTop: 16, padding: 12, background: "#FEE2E2", borderRadius: 8, color: "#DC2626", fontSize: 13 }}>{error}</div>}
+      <button onClick={handleCreateUser} disabled={!valid || loading} style={ctaBtn}>{loading ? 'Creating...' : t('calculateRisk')}</button>
     </div>
   );
 }
 
 const labelStyle = { display: "flex", flexDirection: "column", gap: 6 };
 const labelText = { fontSize: 13, fontWeight: 600, color: "#1A1512" };
-const inputStyle = { padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E0D9D0", fontSize: 14, color: "#1A1512", background: "#FAFAF8", outline: "none", fontFamily: "inherit", transition: "border 0.2s" };
-const ctaBtn = { width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "#FF6B35", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "opacity 0.2s", letterSpacing: "0.01em" };
+const inputStyle = { padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E0D9D0", fontSize: 14, background: "#FAFAF8", outline: "none" };
+const ctaBtn = { width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "#FF6B35", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", marginTop: 28 };
 
 export default OnboardingScreen;
