@@ -6,7 +6,6 @@ import Badge from "./Badge.jsx";
 
 const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
-
 function OnboardingScreen({ onNext }) {
   const { t } = useLanguage();
   const [form, setForm] = useState({ name: "", phone: "", pin: "", platform: "Zomato", earnings: "" });
@@ -32,8 +31,8 @@ function OnboardingScreen({ onNext }) {
     setLoading(true);
     setError("");
     try {
-      const nfiScore = pinData?.nfi || 55;
-      const earningsNum = parseFloat(form.earnings);
+      const nfi = pinData?.nfi || 55;
+      const earnings = parseFloat(form.earnings);
       const email = `${form.name.toLowerCase().replace(/\s+/g, "")}@gigshield.work`;
 
       const response = await fetch(`${API_BASE}/api/users`, {
@@ -44,13 +43,14 @@ function OnboardingScreen({ onNext }) {
           name: form.name,
           platform: form.platform,
           pin_code: form.pin,
-          earnings_weekly: earningsNum,
-          nfi_score: nfiScore,
+          earnings, // ALIGNED with backend
+          nfi,      // ALIGNED with backend
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        const errData = await response.json();
+        throw new Error(errData.error || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -58,12 +58,12 @@ function OnboardingScreen({ onNext }) {
       localStorage.setItem('userName', form.name);
       localStorage.setItem('userPhone', form.phone);
       localStorage.setItem('userPin', form.pin);
-      localStorage.setItem('nfiScore', nfiScore);
+      localStorage.setItem('nfiScore', nfi);
       
-      onNext({ ...form, nfiScore, pinData: pinData || { nfi: nfiScore, city: "Your city", zone: "Area", reason: "Average risk" } });
+      onNext({ ...form, nfiScore: nfi, pinData: pinData || { nfi, city: "Your city", zone: "Area", reason: "Average risk" } });
     } catch (err) {
       console.error('Failed to create user:', err);
-      setError(err.message || 'Failed to create user. Please check if backend is running on localhost:3001 (or deployed backend)');
+      setError(err.message || 'Failed to create user.');
     } finally {
       setLoading(false);
     }

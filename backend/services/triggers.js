@@ -80,7 +80,6 @@ export async function checkWeatherTriggers(pinCode) {
 
     if (!apiKey) {
       console.warn('OpenWeatherMap API key not configured - using simulated data');
-      // Return realistic simulated data so the UI doesn't break
       return {
         triggered: [],
         weather: {
@@ -108,12 +107,12 @@ export async function checkWeatherTriggers(pinCode) {
 
     const weather = weatherRes.data;
     const tempC = weather.main.temp;
-    const humidity = weather.main.humidity || 65; // Fallback to 65% if not provided
-    const rainMM = (weather.rain?.['1h'] || 0); // OpenWeather returns mm/h already
+    const humidity = weather.main.humidity || 65; 
+    const rainMM = (weather.rain?.['1h'] || 0); 
     const heatIndex = calculateHeatIndex(tempC, humidity);
 
     // Fetch AQI
-    let aqiScore = 150; // Default moderate
+    let aqiScore = 150; 
     try {
       const aqiRes = await axios.get(`${OPENWEATHER_URL}/air_pollution`, {
         params: {
@@ -123,13 +122,13 @@ export async function checkWeatherTriggers(pinCode) {
         },
         timeout: 5000,
       });
-      const aqiLevel = aqiRes.data.list[0].main.aqi; // 1-5
+      const aqiLevel = aqiRes.data.list[0].main.aqi; 
       aqiScore = mapAQIScore(aqiLevel);
     } catch (aqiErr) {
       console.warn('AQI fetch failed, using default:', aqiErr.message);
     }
 
-    // Log weather data (optional, don't let it crash the main flow)
+    // Log weather data
     try {
       await logWeatherData({
         pin_code: pinCode,
@@ -142,11 +141,21 @@ export async function checkWeatherTriggers(pinCode) {
       console.warn('Weather logging failed:', logErr.message);
     }
 
-    // If triggers were hit, log them and simulate WhatsApp
+    // Check triggers
+    const triggered = [];
+    if (rainMM > THRESHOLDS.rain) {
+      triggered.push({ type: 'rain', value: rainMM });
+    }
+    if (heatIndex > THRESHOLDS.heat) {
+      triggered.push({ type: 'heat', value: Math.round(heatIndex) });
+    }
+    if (aqiScore > THRESHOLDS.aqi) {
+      triggered.push({ type: 'aqi', value: aqiScore });
+    }
+
+    // Simulate WhatsApp Notifications
     for (const trigger of triggered) {
       console.log(`[TRIGGER] ${trigger.type.toUpperCase()} hit in ${pinCode}: ${trigger.value}`);
-      
-      // Simulate WhatsApp Notification (P4 Task)
       try {
         await simulateWhatsAppNotification(pinCode, trigger);
       } catch (waErr) {
@@ -167,31 +176,31 @@ export async function checkWeatherTriggers(pinCode) {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    // ... error handling
+    console.error(`checkWeatherTriggers for ${pinCode} failed:`, error.message);
+    return {
+      triggered: [],
+      weather: { temp: 30, rainMM: 0, heatIndex: 32, aqi: 100, location: 'Unknown', isFallback: true },
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    };
   }
 }
 
 /**
- * Simulate WhatsApp Notification via Twilio sandbox (P4 Task Mock)
+ * Simulate WhatsApp Notification
  */
 async function simulateWhatsAppNotification(pinCode, trigger) {
   const message = `🛡️ GigShield: Payout Triggered! ${trigger.type.toUpperCase()} threshold exceeded in your zone (${pinCode}). Your automated payout is being processed via UPI.`;
   console.log(`[WHATSAPP SENT] To rider in ${pinCode}: ${message}`);
-  
-  // In a real app, this would call Twilio API:
-  // client.messages.create({ from: 'whatsapp:+14155238886', to: 'whatsapp:+91...', body: message });
-  
   return true;
 }
 
 /**
  * Check all active users for weather triggers and auto-payout
- * Call this via cron job every 30 minutes
  */
 export async function processAllTriggers() {
   try {
     console.log('[CRON] Starting weather trigger check...');
-
     const users = await getAllActiveUsers();
     console.log(`[CRON] Checking ${users.length} users...`);
 
@@ -199,46 +208,32 @@ export async function processAllTriggers() {
 
     for (const user of users) {
       try {
-        // Check weather for this user
         const { triggered, weather } = await checkWeatherTriggers(user.pin_code);
 
-        // For each trigger, create a claim
         for (const trigger of triggered) {
           try {
             const profile = await getUserProfile(user.id);
 
             if (profile.policy && profile.policy.active) {
-              // Calculate payout amount (70% of max, random for demo)
-              const payout = Math.round(
-                profile.policy.max_payout *
-                  (0.5 + Math.random() * 0.3)
-              );
+              const payout = Math.round(profile.policy.max_payout * (0.5 + Math.random() * 0.3));
 
               await logClaim({
                 user_id: user.id,
                 policy_id: profile.policy.id,
                 trigger: trigger.type,
-                amount_triggered: trigger.value,
+                amount: trigger.value, // FIXED: amount_triggered -> amount
                 weather_data: weather,
               });
 
-              console.log(
-                `[CRON] Auto-payout: ${user.name} | Trigger: ${trigger.type} | Amount: ₹${payout}`
-              );
+              console.log(`[CRON] Auto-payout: ${user.name} | Trigger: ${trigger.type} | Amount: ₹${payout}`);
               totalTriggered++;
             }
           } catch (claimError) {
-            console.error(
-              `[CRON] Failed to process claim for ${user.name}:`,
-              claimError.message
-            );
+            console.error(`[CRON] Failed to process claim for ${user.name}:`, claimError.message);
           }
         }
       } catch (userError) {
-        console.error(
-          `[CRON] Failed to check triggers for ${user.name}:`,
-          userError.message
-        );
+        console.error(`[CRON] Failed to check triggers for ${user.name}:`, userError.message);
       }
     }
 
@@ -251,7 +246,7 @@ export async function processAllTriggers() {
 }
 
 /**
- * Manual trigger for testing (simulates a weather event)
+ * Manual trigger for testing
  */
 export async function manualTrigger(userId, triggerType) {
   try {
@@ -261,10 +256,6 @@ export async function manualTrigger(userId, triggerType) {
       throw new Error('No active policy found');
     }
 
-    if (!['rain', 'heat', 'aqi', 'outage'].includes(triggerType)) {
-      throw new Error(`Invalid trigger type: ${triggerType}`);
-    }
-
     const mockWeatherData = {
       rain_mm: triggerType === 'rain' ? 50 : 10,
       temp_c: triggerType === 'heat' ? 45 : 28,
@@ -272,15 +263,13 @@ export async function manualTrigger(userId, triggerType) {
       heat_index: triggerType === 'heat' ? 48 : 30,
     };
 
-    const payout = Math.round(
-      profile.policy.max_payout * (0.5 + Math.random() * 0.3)
-    );
+    const payout = Math.round(profile.policy.max_payout * (0.5 + Math.random() * 0.3));
 
     const claim = await logClaim({
       user_id: userId,
       policy_id: profile.policy.id,
       trigger: triggerType,
-      amount_triggered: mockWeatherData[Object.keys(mockWeatherData)[0]],
+      amount: mockWeatherData[Object.keys(mockWeatherData)[0]], // FIXED: amount_triggered -> amount
       weather_data: mockWeatherData,
     });
 

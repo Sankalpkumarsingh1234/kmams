@@ -6,7 +6,6 @@ import Badge from "./Badge.jsx";
 
 const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
-
 function PolicyScreen({ data, onNext, onBack }) {
   const { t } = useLanguage();
   const [selected, setSelected] = useState("standard");
@@ -15,6 +14,7 @@ function PolicyScreen({ data, onNext, onBack }) {
   const { nfi, seasonal } = data;
   const tier = TIERS.find(t => t.id === selected);
   const premium = calcPremium(tier.base, nfi, seasonal, true);
+
   return (
     <div>
       <div style={{ marginBottom: 6 }}><Badge text="Step 3 of 4" /></div>
@@ -83,23 +83,24 @@ function PolicyScreen({ data, onNext, onBack }) {
               body: JSON.stringify({
                 user_id: userId,
                 tier: selected,
-                premium_weekly: premium,
+                premium: premium, // ALIGNED with backend (was premium_weekly)
                 max_payout: tier_data.max,
               }),
             });
 
             if (!response.ok) {
-              throw new Error(`Server error: ${response.status}`);
+              const errData = await response.json();
+              throw new Error(errData.error || `Server error: ${response.status}`);
             }
 
             const policyData = await response.json();
             localStorage.setItem('policyId', policyData.id || policyData.policy_id);
             localStorage.setItem('policyTier', selected);
             
-            // Send WhatsApp notification if phone available (optional - doesn't block policy creation)
+            // Send WhatsApp notification
             if (userPhone) {
               try {
-                const notifRes = await fetch(`${API_BASE}/api/notify/policy-activated`, {
+                await fetch(`${API_BASE}/api/notify/policy-activated`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -108,19 +109,13 @@ function PolicyScreen({ data, onNext, onBack }) {
                     premiumWeekly: premium,
                   }),
                 });
-                // 503 = Twilio not configured (expected in development), 200 = sent successfully
-                if (notifRes.ok || notifRes.status === 503) {
-                  console.log('Policy created (WhatsApp notification:', notifRes.status === 200 ? 'sent' : 'pending', ')');
-                }
-              } catch (whatsappErr) {
-                // Network errors are silent - notification is optional
-              }
+              } catch (whatsappErr) { /* non-blocking */ }
             }
             
             onNext({ ...data, tier: selected, premium });
           } catch (err) {
             console.error('Failed to create policy:', err);
-            setError(err.message || 'Failed to create policy. Please check backend.');
+            setError(err.message || 'Failed to create policy.');
           } finally {
             setLoading(false);
           }

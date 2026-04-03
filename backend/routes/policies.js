@@ -16,7 +16,7 @@ const TIERS = {
  */
 router.post('/api/policies', async (req, res) => {
   try {
-    const { user_id, tier, premium_weekly, max_payout } = req.body;
+    const { user_id, tier, premium, max_payout } = req.body;
 
     // Validate tier
     if (!TIERS[tier]) {
@@ -30,13 +30,13 @@ router.post('/api/policies', async (req, res) => {
     }
 
     // Use provided premium and payout, or fall back to defaults
-    const finalPremium = premium_weekly || TIERS[tier].base;
+    const finalPremium = premium || TIERS[tier].base;
     const finalPayout = max_payout || TIERS[tier].max_payout;
 
     const policy = await createPolicy({
       user_id,
       tier,
-      premium_weekly: finalPremium,
+      premium: finalPremium,
       max_payout: finalPayout,
     });
 
@@ -45,7 +45,7 @@ router.post('/api/policies', async (req, res) => {
       id: policy.id,
       policy_id: policy.id,
       tier,
-      premium_weekly: finalPremium,
+      premium: finalPremium,
       max_payout: finalPayout,
     });
   } catch (error) {
