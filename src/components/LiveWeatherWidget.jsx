@@ -81,18 +81,31 @@ function LiveWeatherWidget({ city }) {
             <div style={{ fontSize: 10, color: "#9B9589" }}>actual</div>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
           {[
-            { label: "Feels like", value: `${weather.feels}°C`, alert: heatTriggered, alertColor: "#EF4444" },
-            { label: "Humidity", value: `${weather.humidity}%`, alert: weather.humidity > 80, alertColor: "#F59E0B" },
-            { label: "Wind", value: `${weather.wind}km/h`, alert: false, alertColor: null },
-            { label: "AQI", value: weather.aqi, alert: aqiTriggered, alertColor: aqiColor },
+            { label: "Rainfall", value: `${weather.rainMM}mm`, progress: (weather.rainMM / 35) * 100, threshold: "35mm", icon: "🌧" },
+            { label: "Heat Index", value: `${weather.feels}°C`, progress: (weather.feels / 42) * 100, threshold: "42°C", icon: "🌡" },
+            { label: "Air Quality", value: `${weather.aqi} AQI`, progress: (weather.aqi / 350) * 100, threshold: "350", icon: "💨" },
+            { label: "Humidity", value: `${weather.humidity}%`, progress: weather.humidity, threshold: "80%+", icon: "💧" },
           ].map((w, i) => (
-            <div key={i} style={{ padding: "7px 6px", background: w.alert ? "#FEF3C7" : "#fff", borderRadius: 8, textAlign: "center", border: `1px solid ${w.alert ? "#F59E0B" : "#E0D9D0"}` }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 14, color: w.alert ? w.alertColor : "#1A1512" }}>{w.value}</div>
-              <div style={{ fontSize: 9, color: "#9B9589", marginTop: 1 }}>{w.label}</div>
+            <div key={i} style={{ padding: "10px", background: "#fff", borderRadius: 10, border: "1px solid #E0D9D0", position: "relative", overflow: "hidden" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#1A1512" }}>{w.icon} {w.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: w.progress >= 100 ? "#EF4444" : "#1A1512" }}>{w.value}</span>
+              </div>
+              <div style={{ height: 4, background: "#F5F0EB", borderRadius: 2, position: "relative" }}>
+                <div style={{ width: `${Math.min(w.progress, 100)}%`, height: "100%", background: w.progress >= 100 ? "#EF4444" : "#FF6B35", borderRadius: 2, transition: "width 0.5s ease" }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                <span style={{ fontSize: 8, color: "#9B9589" }}>{w.progress >= 100 ? "Trigger hit!" : "Progress to payout"}</span>
+                <span style={{ fontSize: 8, fontWeight: 600, color: "#6B6258" }}>Target: {w.threshold}</span>
+              </div>
             </div>
           ))}
+        </div>
+        <div style={{ padding: "8px 10px", background: "#F5F0EB", borderRadius: 8, fontSize: 10, color: "#6B6258", display: "flex", gap: 6, alignItems: "center" }}>
+          <span>ℹ️</span>
+          <span>Heat Index is calculated using <b>Rothfusz formula</b> (Temp + Humidity). Rainfall is measured hourly.</span>
         </div>
         {(heatTriggered || aqiTriggered) && (
           <div style={{ marginTop: 10, padding: "8px 10px", background: "#FEF3C7", borderRadius: 8, fontSize: 12, color: "#92400E", fontWeight: 600 }}>

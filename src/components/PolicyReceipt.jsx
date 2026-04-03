@@ -25,15 +25,29 @@ function PolicyReceipt({ data }) {
           <div style={{ background: "#FF6B35", borderRadius: 5, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#fff" }}>ACTIVE</div>
         </div>
         <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 7 }}>
-          {[["Policyholder", name], ["Platform", platform], ["Zone", `${pinData.zone}, ${pinData.city}`], ["NFI Risk Score", `${nfi}/100`], ["Plan", `${tierObj.name} Plan`], ["Weekly Premium", `₹${premium}`], ["Max Weekly Payout", `₹${tierObj.max.toLocaleString()}`], ["Coverage Period", `${fmt(weekStart)} – ${fmt(weekEnd)}`], ["Coverage", tierObj.coverage.join(", ")]].map(([label, val], i) => (
+          {[
+            ["Policyholder", name],
+            ["Platform", platform],
+            ["Zone", `${pinData?.zone || "Anna Nagar"}, ${pinData?.city || "Chennai"}`],
+            ["NFI Risk Score", `${nfi}/100`],
+            ["Plan", `${tierObj.name} Plan`],
+            ["Weekly Premium", `₹${premium}`],
+            ["Max Weekly Payout", `₹${tierObj.max.toLocaleString()}`],
+            ["Rain Trigger", "> 35mm / 2hrs"],
+            ["Heat Trigger", "> 42°C Index"],
+            ["AQI Trigger", "> 350 (Severe)"],
+            ["Outage Trigger", "> 90 Minutes"],
+            ["Payout Method", "Automatic UPI"],
+            ["Coverage Period", `${fmt(weekStart)} – ${fmt(weekEnd)}`]
+          ].map(([label, val], i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, paddingBottom: 7, borderBottom: "1px solid #F5F0EB" }}>
               <span style={{ color: "#6B6258" }}>{label}</span>
               <span style={{ fontWeight: 600, color: "#1A1512", textAlign: "right", maxWidth: "55%" }}>{val}</span>
             </div>
           ))}
         </div>
-        <div style={{ background: "#F5F0EB", padding: "8px 14px", fontSize: 10, color: "#9B9589" }}>
-          Parametric insurance — payouts triggered automatically. No claims filing required.
+        <div style={{ background: "#F5F0EB", padding: "10px 14px", fontSize: 10, color: "#9B9589", lineHeight: 1.4 }}>
+          <b>Parametric Payout Rule:</b> Money reaches your registered UPI ID automatically within 30 minutes of a trigger event. No manual claim filing required.
         </div>
       </div>
     </div>
