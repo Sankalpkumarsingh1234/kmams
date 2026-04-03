@@ -13,13 +13,13 @@ function AIChatAssistant({ userData }) {
   const chatRef = useRef(null);
 
   const QUICK_QUESTIONS = [
-    "When does rain trigger a payout?",
+    "When does rain trigger my payout?",
     "How is heat index calculated?",
+    "Does AQI of 300 trigger a payout?",
+    "Am I covered for Swiggy going down?",
     "Can I get paid twice in one week?",
-    "What if I'm offline during a storm?",
-    "Is Swiggy covered for outages?",
-    "How fast does the money reach me?",
-    "What does my NFI score mean?",
+    "Should I upgrade my plan?",
+    "What extra coverage does premium give me?",
     "How does fraud detection work?",
   ];
 
