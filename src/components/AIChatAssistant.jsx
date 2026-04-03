@@ -16,8 +16,10 @@ function AIChatAssistant({ userData }) {
     "When does rain trigger a payout?",
     "How is heat index calculated?",
     "Can I get paid twice in one week?",
+    "What if I'm offline during a storm?",
+    "How do I update my UPI ID?",
+    "Is Swiggy covered for outages?",
     "What does an AQI of 350 mean?",
-    "How does fraud detection work?",
   ];
 
   const systemPrompt = `You are GigShield's AI assistant — a friendly, concise insurance advisor for Indian food delivery workers (Zomato/Swiggy riders).

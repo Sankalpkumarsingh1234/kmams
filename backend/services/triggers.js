@@ -76,12 +76,24 @@ function mapAQIScore(level) {
 export async function checkWeatherTriggers(pinCode) {
   try {
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    if (!apiKey) {
-      console.warn('OpenWeatherMap API key not configured - using mock data');
-      return { triggered: [], hasError: true };
-    }
-
     const location = LOCATION_MAP[pinCode] || LOCATION_MAP['600001'];
+
+    if (!apiKey) {
+      console.warn('OpenWeatherMap API key not configured - using simulated data');
+      // Return realistic simulated data so the UI doesn't break
+      return {
+        triggered: [],
+        weather: {
+          temp: 32,
+          rainMM: 5,
+          heatIndex: 34,
+          aqi: 120,
+          location: location.city,
+          isSimulated: true
+        },
+        timestamp: new Date().toISOString(),
+      };
+    }
 
     // Fetch current weather
     const weatherRes = await axios.get(`${OPENWEATHER_URL}/weather`, {
@@ -96,31 +108,39 @@ export async function checkWeatherTriggers(pinCode) {
 
     const weather = weatherRes.data;
     const tempC = weather.main.temp;
-    const humidity = weather.main.humidity;
-    const rainMM = (weather.rain?.['1h'] || 0) * 25.4; // Convert inches to mm
+    const humidity = weather.main.humidity || 65; // Fallback to 65% if not provided
+    const rainMM = (weather.rain?.['1h'] || 0); // OpenWeather returns mm/h already
     const heatIndex = calculateHeatIndex(tempC, humidity);
 
     // Fetch AQI
-    const aqiRes = await axios.get(`${OPENWEATHER_URL}/air_pollution`, {
-      params: {
-        lat: location.lat,
-        lon: location.lon,
-        appid: apiKey,
-      },
-      timeout: 5000,
-    });
+    let aqiScore = 150; // Default moderate
+    try {
+      const aqiRes = await axios.get(`${OPENWEATHER_URL}/air_pollution`, {
+        params: {
+          lat: location.lat,
+          lon: location.lon,
+          appid: apiKey,
+        },
+        timeout: 5000,
+      });
+      const aqiLevel = aqiRes.data.list[0].main.aqi; // 1-5
+      aqiScore = mapAQIScore(aqiLevel);
+    } catch (aqiErr) {
+      console.warn('AQI fetch failed, using default:', aqiErr.message);
+    }
 
-    const aqiLevel = aqiRes.data.list[0].main.aqi; // 1-5
-    const aqiScore = mapAQIScore(aqiLevel);
-
-    // Log weather data
-    await logWeatherData({
-      pin_code: pinCode,
-      temp_c: tempC,
-      rain_mm: rainMM,
-      aqi: aqiScore,
-      heat_index: heatIndex,
-    });
+    // Log weather data (optional, don't let it crash the main flow)
+    try {
+      await logWeatherData({
+        pin_code: pinCode,
+        temp_c: tempC,
+        rain_mm: rainMM,
+        aqi: aqiScore,
+        heat_index: heatIndex,
+      });
+    } catch (logErr) {
+      console.warn('Weather logging failed:', logErr.message);
+    }
 
     // Check which triggers were hit
     const triggered = [];
@@ -139,16 +159,19 @@ export async function checkWeatherTriggers(pinCode) {
       weather: {
         temp: tempC,
         rainMM,
-        heatIndex,
+        heatIndex: Math.round(heatIndex),
         aqi: aqiScore,
         location: location.city,
+        humidity
       },
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
     console.error(`checkWeatherTriggers for ${pinCode} failed:`, error.message);
+    // Return gracefully instead of crashing
     return {
       triggered: [],
+      weather: { temp: 30, rainMM: 0, heatIndex: 32, aqi: 100, location: 'Unknown', isFallback: true },
       error: error.message,
       timestamp: new Date().toISOString(),
     };

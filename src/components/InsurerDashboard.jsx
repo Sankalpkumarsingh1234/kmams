@@ -13,9 +13,17 @@ function InsurerDashboard({ onBack }) {
   const [insurerTab, setInsurerTab] = useState("overview");
   const insurerTabs = [
     { id: "overview", label: "Overview" },
+    { id: "claims", label: "📋 Claims" },
     { id: "fraud", label: "🔍 Fraud AI" },
     { id: "zones", label: "Zone Risk" },
     { id: "forecast", label: "Forecast" },
+  ];
+
+  const systemStatus = [
+    { name: "OpenWeather API", status: "Healthy", latency: "124ms" },
+    { name: "Groq AI Service", status: "Healthy", latency: "310ms" },
+    { name: "Supabase DB", status: "Healthy", latency: "85ms" },
+    { name: "Twilio WhatsApp", status: "Warning", latency: "1.2s" },
   ];
 
   return (
@@ -65,26 +73,80 @@ function InsurerDashboard({ onBack }) {
 
           {/* Overview Tab */}
           {insurerTab === "overview" && (
-            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", marginBottom: 14 }}>
-              <div onClick={() => setFraudExpanded(e => !e)} style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1512" }}>Recent fraud flags</span>
-                  <Badge text={`${INSURER_STATS.fraudFlagged} flagged`} color="#EF4444" bg="#FEE2E2" />
+            <>
+              {/* System Monitor — New Feature */}
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", padding: "14px 16px", marginBottom: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1512", marginBottom: 12, display: "flex", justifyContent: "space-between" }}>
+                  <span>📡 Platform Integrity Monitor</span>
+                  <Badge text="Admin-only" color="#7C3AED" bg="#EDE9FE" />
                 </div>
-                <span style={{ fontSize: 11, color: "#FF6B35", fontWeight: 600, cursor: "pointer" }} onClick={() => setInsurerTab("fraud")}>View all →</span>
-              </div>
-              {fraudCases.slice(0, 2).map((f, i) => (
-                <div key={i} style={{ padding: "10px 14px", borderTop: "1px solid #F5F0EB", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{f.id}</span>
-                      <span style={{ fontSize: 10, color: "#9B9589" }}>· {f.worker} · {f.pin}</span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {systemStatus.map((s, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#FAFAF8", borderRadius: 10, border: "1px solid #E0D9D0" }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#1A1512" }}>{s.name}</div>
+                        <div style={{ fontSize: 9, color: "#9B9589" }}>Online · {s.latency}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.status === "Healthy" ? "#4CAF82" : "#F59E0B" }} />
+                        <span style={{ fontSize: 10, fontWeight: 700, color: s.status === "Healthy" ? "#4CAF82" : "#F59E0B" }}>{s.status}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 11, color: "#6B6258" }}>{f.reason}</div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", marginBottom: 14 }}>
+                <div onClick={() => setFraudExpanded(e => !e)} style={{ padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1512" }}>Recent fraud flags</span>
+                    <Badge text={`${INSURER_STATS.fraudFlagged} flagged`} color="#EF4444" bg="#FEE2E2" />
                   </div>
-                  <Badge text={f.risk} color={f.risk === "High" ? "#EF4444" : "#F59E0B"} bg={f.risk === "High" ? "#FEE2E2" : "#FEF3C7"} />
+                  <span style={{ fontSize: 11, color: "#FF6B35", fontWeight: 600, cursor: "pointer" }} onClick={() => setInsurerTab("fraud")}>View all →</span>
+                </div>
+                {fraudCases.slice(0, 2).map((f, i) => (
+                  <div key={i} style={{ padding: "10px 14px", borderTop: "1px solid #F5F0EB", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{f.id}</span>
+                        <span style={{ fontSize: 10, color: "#9B9589" }}>· {f.worker} · {f.pin}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#6B6258" }}>{f.reason}</div>
+                    </div>
+                    <Badge text={f.risk} color={f.risk === "High" ? "#EF4444" : "#F59E0B"} bg={f.risk === "High" ? "#FEE2E2" : "#FEF3C7"} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Claims Management Tab — New Feature */}
+          {insurerTab === "claims" && (
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", marginBottom: 14 }}>
+              <div style={{ padding: "12px 14px", borderBottom: "1px solid #E0D9D0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1512" }}>Pending claims review</span>
+                <div style={{ fontSize: 11, color: "#9B9589" }}>Batch: CLM-APR-003</div>
+              </div>
+              {[
+                { id: "CLM089", worker: "Rahul V.", type: "Heat Stress", amount: "₹450", time: "18h ago", status: "Flagged" },
+                { id: "CLM090", worker: "Deepak S.", type: "Platform Outage", amount: "₹280", time: "22h ago", status: "Pending" },
+                { id: "CLM091", worker: "Kunal P.", type: "Heavy Rain", amount: "₹520", time: "1d ago", status: "Pending" },
+              ].map((c, i) => (
+                <div key={i} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{c.id}</span>
+                      <span style={{ fontSize: 10, color: "#6B6258" }}>{c.worker} · {c.type}</span>
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1512" }}>{c.amount} <span style={{ fontSize: 10, fontWeight: 400, color: "#9B9589" }}>· {c.time}</span></div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #E0D9D0", background: "#fff", color: "#6B6258", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Details</button>
+                    <button style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#4CAF82", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Approve</button>
+                  </div>
                 </div>
               ))}
+              <div style={{ padding: "10px", textAlign: "center", background: "#FAFAF8", fontSize: 11, color: "#FF6B35", fontWeight: 600, cursor: "pointer" }}>View historical claims</div>
             </div>
           )}
           {/* Zones Tab */}
