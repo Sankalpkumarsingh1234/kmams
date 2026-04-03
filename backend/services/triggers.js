@@ -34,27 +34,81 @@ function mapAQIScore(level) {
 export async function checkWeatherTriggers(pinCode) {
   try {
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    const location = LOCATION_MAP[pinCode] || LOCATION_MAP['600001'];
+    
+    // Attempt to get coordinates
+    let location = LOCATION_MAP[pinCode];
+    
+    // If not in hardcoded map, try Geocoding API (All India support)
+    if (!location && apiKey) {
+      try {
+        console.log(`[GEO] Fetching coordinates for PIN: ${pinCode}`);
+        const geoRes = await axios.get(`http://api.openweathermap.org/geo/1.0/zip`, {
+          params: { zip: `${pinCode},IN`, appid: apiKey },
+          timeout: 4000
+        });
+        if (geoRes.data) {
+          location = { 
+            lat: geoRes.data.lat, 
+            lon: geoRes.data.lon, 
+            city: geoRes.data.name || 'Unknown' 
+          };
+          console.log(`[GEO] Found: ${location.city} (${location.lat}, ${location.lon})`);
+        }
+      } catch (e) {
+        console.error(`[GEO] Failed for ${pinCode}, falling back to default.`);
+      }
+    }
+
+    // Ultimate fallback to Chennai if still not found
+    if (!location) location = LOCATION_MAP['600001'];
+
     if (!apiKey) return { triggered: [], weather: { temp: 32, rainMM: 5, heatIndex: 34, aqi: 120, location: location.city, isSimulated: true }, timestamp: new Date().toISOString() };
+    
     const weatherRes = await axios.get(`${OPENWEATHER_URL}/weather`, { params: { lat: location.lat, lon: location.lon, appid: apiKey, units: 'metric' }, timeout: 5000 });
     const weather = weatherRes.data;
     const tempC = weather.main.temp;
     const humidity = weather.main.humidity || 65;
     const rainMM = (weather.rain?.['1h'] || 0);
     const heatIndex = calculateHeatIndex(tempC, humidity);
+    
     let aqiScore = 150;
     try {
       const aqiRes = await axios.get(`${OPENWEATHER_URL}/air_pollution`, { params: { lat: location.lat, lon: location.lon, appid: apiKey }, timeout: 5000 });
       aqiScore = mapAQIScore(aqiRes.data.list[0].main.aqi);
     } catch (e) {}
+    
     try { await logWeatherData({ pin_code: pinCode, temp_c: tempC, rain_mm: rainMM, aqi: aqiScore, heat_index: heatIndex }); } catch (e) {}
+    
     const triggered = [];
     if (rainMM > THRESHOLDS.rain) triggered.push({ type: 'rain', value: rainMM });
     if (heatIndex > THRESHOLDS.heat) triggered.push({ type: 'heat', value: Math.round(heatIndex) });
     if (aqiScore > THRESHOLDS.aqi) triggered.push({ type: 'aqi', value: aqiScore });
-    for (const t of triggered) { console.log(`[TRIGGER] ${t.type.toUpperCase()} hit: ${t.value}`); await simulateWhatsAppNotification(pinCode, t); }
-    return { triggered, weather: { temp: tempC, rainMM, heatIndex: Math.round(heatIndex), aqi: aqiScore, location: location.city, humidity }, timestamp: new Date().toISOString() };
-  } catch (error) { return { triggered: [], weather: { temp: 30, rainMM: 0, heatIndex: 32, aqi: 100, location: 'Unknown', isFallback: true }, error: error.message, timestamp: new Date().toISOString() }; }
+    
+    for (const t of triggered) { 
+      console.log(`[TRIGGER] ${t.type.toUpperCase()} hit in ${pinCode}: ${t.value}`); 
+      await simulateWhatsAppNotification(pinCode, t); 
+    }
+    
+    return { 
+      triggered, 
+      weather: { 
+        temp: tempC, 
+        rainMM, 
+        heatIndex: Math.round(heatIndex), 
+        aqi: aqiScore, 
+        location: location.city, 
+        humidity 
+      }, 
+      timestamp: new Date().toISOString() 
+    };
+  } catch (error) { 
+    return { 
+      triggered: [], 
+      weather: { temp: 30, rainMM: 0, heatIndex: 32, aqi: 100, location: 'Unknown', isFallback: true }, 
+      error: error.message, 
+      timestamp: new Date().toISOString() 
+    }; 
+  }
 }
 
 async function simulateWhatsAppNotification(pinCode, trigger) {
