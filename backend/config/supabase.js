@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Environment variables (from .env.local)
-// Lazy-load to allow .env to be configured first
 let _supabaseClient = null;
 
 function ensureClient() {
@@ -18,15 +17,13 @@ function ensureClient() {
   return _supabaseClient;
 }
 
-// Export as a function for routes to call
 export function getSupabaseClient() {
   return ensureClient();
 }
 
-// Re-export with lazy getter for backward compatibility with routes using `supabase`
 export { getSupabaseClient as supabase };
 
-// ============ Helper Functions ============
+// ============ Helper Functions (ALIGNED WITH P3 SQL SCHEMA) ============
 
 /**
  * Get user profile with active policy and claims
@@ -48,7 +45,7 @@ export async function getUserProfile(userId) {
       .eq('active', true)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     const { data: claims } = await getSupabaseClient()
       .from('claims')
@@ -59,7 +56,7 @@ export async function getUserProfile(userId) {
 
     return {
       user,
-      policy,
+      policy: policy || null,
       claims: claims || [],
     };
   } catch (error) {
@@ -77,13 +74,13 @@ export async function createUser(userData) {
     name,
     platform,
     pin_code,
-    earnings_weekly,
-    nfi_score,
+    earnings, // FIXED: earnings_weekly -> earnings
+    nfi      // FIXED: nfi_score -> nfi
   } = userData;
 
   try {
     // Check if user exists
-    const { data: existing, error: existingError } = await getSupabaseClient()
+    const { data: existing } = await getSupabaseClient()
       .from('users')
       .select('id')
       .eq('email', email)
@@ -120,7 +117,7 @@ export async function createUser(userData) {
  * Create policy for user
  */
 export async function createPolicy(policyData) {
-  const { user_id, tier, premium_weekly, max_payout } = policyData;
+  const { user_id, tier, premium, max_payout } = policyData; // FIXED: premium_weekly -> premium
 
   try {
     // Deactivate old policies
@@ -152,10 +149,10 @@ export async function createPolicy(policyData) {
 }
 
 /**
- * Log a claim trigger (auto-payout on trigger)
+ * Log a claim trigger
  */
 export async function logClaim(claimData) {
-  const { user_id, policy_id, trigger, amount_triggered, weather_data } = claimData;
+  const { user_id, policy_id, trigger, amount, weather_data } = claimData; // FIXED: amount_triggered -> amount
 
   try {
     const { data: claim, error } = await getSupabaseClient()
@@ -203,7 +200,7 @@ export async function getUserClaims(userId) {
 }
 
 /**
- * Log weather data for analysis
+ * Log weather data
  */
 export async function logWeatherData(weatherData) {
   try {
@@ -223,13 +220,13 @@ export async function logWeatherData(weatherData) {
 }
 
 /**
- * Get all active users (for cron jobs)
+ * Get all active users
  */
 export async function getAllActiveUsers() {
   try {
     const { data: users, error } = await getSupabaseClient()
       .from('users')
-      .select('id, email, name, pin_code, earnings_weekly, nfi_score');
+      .select('id, email, name, pin_code, earnings, nfi'); // FIXED: earnings_weekly/nfi_score -> earnings/nfi
 
     if (error) throw error;
     return users || [];

@@ -10,7 +10,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
  * POST /api/chat
  * Send message to Groq API with user context
  */
-router.post('/api/chat', async (req, res) => {
+router.post('/chat', async (req, res) => {
   try {
     const { userMessage, userContext } = req.body;
 
@@ -114,7 +114,7 @@ Keep responses SHORT (1-3 sentences maximum). Be friendly, empathetic, and speak
  * POST /api/chat/health
  * Check if Groq service is available
  */
-router.post('/api/chat/health', async (req, res) => {
+router.post('/chat/health', async (req, res) => {
   try {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {

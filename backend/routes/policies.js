@@ -14,7 +14,7 @@ const TIERS = {
  * POST /api/policies
  * Create or update policy for user
  */
-router.post('/api/policies', async (req, res) => {
+router.post('/policies', async (req, res) => {
   try {
     const { user_id, tier, premium, max_payout } = req.body;
 
@@ -58,7 +58,7 @@ router.post('/api/policies', async (req, res) => {
  * GET /api/tiers
  * Get all tier definitions
  */
-router.get('/api/tiers', (req, res) => {
+router.get('/tiers', (req, res) => {
   res.json(TIERS);
 });
 

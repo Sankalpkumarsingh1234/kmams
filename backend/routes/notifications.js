@@ -19,7 +19,7 @@ function getTwilioClient() {
  * POST /api/notify/whatsapp
  * Send WhatsApp notification to user
  */
-router.post('/api/notify/whatsapp', async (req, res) => {
+router.post('/notify/whatsapp', async (req, res) => {
   try {
     const client = getTwilioClient();
     if (!client) {
@@ -74,7 +74,7 @@ router.post('/api/notify/whatsapp', async (req, res) => {
  * POST /api/notify/claim
  * Send claim trigger notification via WhatsApp
  */
-router.post('/api/notify/claim', async (req, res) => {
+router.post('/notify/claim', async (req, res) => {
   try {
     const client = getTwilioClient();
     if (!client) {
@@ -114,7 +114,7 @@ router.post('/api/notify/claim', async (req, res) => {
  * POST /api/notify/policy-activated
  * Send policy activation notification
  */
-router.post('/api/notify/policy-activated', async (req, res) => {
+router.post('/notify/policy-activated', async (req, res) => {
   try {
     const client = getTwilioClient();
     if (!client) {

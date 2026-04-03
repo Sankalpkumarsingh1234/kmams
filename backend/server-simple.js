@@ -18,11 +18,6 @@ const envPath = path.join(__dirname, '../.env.local');
 const result = dotenv.config({ path: envPath });
 
 console.log(`[✓] Environment loaded from: ${envPath}`);
-if (result.error) {
-  console.warn(`[⚠] Warning: ${result.error.message}`);
-} else {
-  console.log(`[✓] Variables loaded: ${Object.keys(result.parsed || {}).length} keys`);
-}
 
 // NOW import everything else after env is loaded
 import express from 'express';
@@ -35,7 +30,6 @@ import usersRouter from './routes/users.js';
 import policiesRouter from './routes/policies.js';
 import claimsRouter from './routes/claims.js';
 import chatRouter from './routes/chat.js';
-// import paymentsRouter from './routes/payments.js'; // DISABLED - Razorpay integration coming soon
 import triggersRouter from './routes/triggers.js';
 import notificationsRouter from './routes/notifications.js';
 
@@ -44,22 +38,10 @@ import notificationsRouter from './routes/notifications.js';
 // ══════════════════════════════════════════════════════════════════════════
 
 const requiredEnv = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
-const optionalEnv = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'GROQ_API_KEY', 'OPENWEATHER_API_KEY'];
 
 const missingRequired = requiredEnv.filter(key => !process.env[key]);
 if (missingRequired.length > 0) {
-  console.error('\n[FATAL] Missing REQUIRED environment variables:');
-  missingRequired.forEach(key => console.error(`  - ${key}`));
-  console.error('\nPlease set these variables in Vercel or .env.local');
-  // Skip process.exit(1) so Vercel Serverless doesn't permanently crash routing 500s without CORS headers
-}
-
-console.log('[✓] All required environment variables loaded');
-
-const missingOptional = optionalEnv.filter(key => !process.env[key]);
-if (missingOptional.length > 0) {
-  console.log('[⚠] Missing optional environment variables:');
-  missingOptional.forEach(key => console.log(`  - ${key} (feature disabled)`));
+  console.error('\n[FATAL] Missing REQUIRED environment variables');
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -77,15 +59,6 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // SERVICE INITIALIZATION
 // ══════════════════════════════════════════════════════════════════════════
 
-function getTwilioClient() {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token || token === 'your_auth_token_here') {
-    return null;
-  }
-  return twilio(sid, token);
-}
-
 const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) 
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
   : null;
@@ -93,59 +66,33 @@ const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY)
 // Add middleware to warn users of missing DB
 app.use((req, res, next) => {
   if (!supabase && req.url !== '/health') {
-    return res.status(500).json({ error: "Backend Database not configured. Please add SUPABASE_URL to Vercel Environment Variables." });
+    return res.status(500).json({ error: "Backend Database not configured." });
   }
   next();
 });
 
 // ══════════════════════════════════════════════════════════════════════════
-// REGISTER ROUTES
+// REGISTER ROUTES (FIXED PREFIXES)
 // ══════════════════════════════════════════════════════════════════════════
 
-app.use('/', usersRouter);
-app.use('/', policiesRouter);
-app.use('/', claimsRouter);
-app.use('/', chatRouter);
-// app.use('/', paymentsRouter); // DISABLED - Razorpay integration coming soon
-app.use('/', triggersRouter);
-app.use('/', notificationsRouter);
+app.use('/api', usersRouter);
+app.use('/api', policiesRouter);
+app.use('/api', claimsRouter);
+app.use('/api', chatRouter);
+app.use('/api', triggersRouter);
+app.use('/api', notificationsRouter);
 
-// ── Validation Middleware ──────────────────────────────────────────────────
-const validatePhone = (phone) => {
-  return /^\+?[1-9]\d{1,14}$/.test(phone.replace(/[\s()-]/g, ''));
-};
-
-const validateMessage = (msg) => {
-  return msg && typeof msg === 'string' && msg.length > 0 && msg.length <= 4096;
-};
-
-const validateAmount = (amount) => {
-  return Number.isFinite(amount) && amount > 0 && amount < 1000000;
-};
-
-// ── Error Handler ──────────────────────────────────────────────────────────
-const handleError = (res, status, message, error = null) => {
-  console.error(`[ERROR] ${message}`, error?.message || '');
-  res.status(status).json({ error: message, details: error?.message || '' });
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TWILIO WHATSAPP INTEGRATION
-// ═══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════
+// TWILIO WHATSAPP HELPERS
+// ══════════════════════════════════════════════════════════════════════════
 
 async function sendWhatsAppNotification(phoneNumber, message) {
   try {
-    // Validate inputs
-    if (!validatePhone(phoneNumber)) {
-      throw new Error('Invalid phone number format');
-    }
-    if (!validateMessage(message)) {
-      throw new Error('Invalid message: must be 1-4096 characters');
-    }
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+    if (!sid || !token) throw new Error('Twilio not configured');
 
-    const client = getTwilioClient();
-    if (!client) throw new Error('Twilio credentials not configured');
-
+    const client = twilio(sid, token);
     const msg = await client.messages.create({
       from: process.env.TWILIO_PHONE,
       to: `whatsapp:${phoneNumber}`,
@@ -153,73 +100,9 @@ async function sendWhatsAppNotification(phoneNumber, message) {
     });
 
     console.log(`📱 WhatsApp sent: ${msg.sid}`);
-
-    // Log to Supabase
-    await supabase.from('notifications').insert({
-      type: 'whatsapp',
-      phone: phoneNumber,
-      message: message,
-      twilio_sid: msg.sid,
-      status: 'sent',
-      created_at: new Date(),
-    });
-
     return msg.sid;
   } catch (err) {
     console.error('WhatsApp send failed:', err.message);
-    await supabase.from('notifications').insert({
-      type: 'whatsapp',
-      phone: phoneNumber,
-      message: message,
-      status: 'failed',
-      error: err.message,
-      created_at: new Date(),
-    });
-    throw err;
-  }
-}
-
-/**
- * Send WhatsApp template-based notification (using Twilio Content Templates)
- * @param {string} phoneNumber - User's phone with country code (e.g., +919369889575)
- * @param {string} contentSid - Twilio content template SID
- * @param {object} contentVariables - Variables to substitute in template
- */
-async function sendWhatsAppTemplate(phoneNumber, contentSid, contentVariables) {
-  try {
-    const client = getTwilioClient();
-    if (!client) throw new Error('Twilio credentials not configured');
-
-    const message = await client.messages.create({
-      from: process.env.TWILIO_PHONE,
-      contentSid: contentSid,
-      contentVariables: JSON.stringify(contentVariables),
-      to: `whatsapp:${phoneNumber}`
-    });
-
-    console.log(`✅ WhatsApp template sent to ${phoneNumber}: ${message.sid}`);
-
-    // Log to Supabase
-    await supabase.from('notifications').insert({
-      type: 'whatsapp_template',
-      phone: phoneNumber,
-      twilio_sid: message.sid,
-      status: 'sent',
-      template_sid: contentSid,
-      created_at: new Date().toISOString(),
-    });
-
-    return message.sid;
-  } catch (err) {
-    console.error(`❌ WhatsApp template error for ${phoneNumber}:`, err.message);
-    await supabase.from('notifications').insert({
-      type: 'whatsapp_template',
-      phone: phoneNumber,
-      status: 'failed',
-      error: err.message,
-      template_sid: contentSid,
-      created_at: new Date().toISOString(),
-    });
     throw err;
   }
 }
@@ -227,151 +110,29 @@ async function sendWhatsAppTemplate(phoneNumber, contentSid, contentVariables) {
 // Route: Send WhatsApp (POST /api/twilio/send-whatsapp)
 app.post('/api/twilio/send-whatsapp', async (req, res) => {
   try {
-    const { phoneNumber, message, userId } = req.body;
-
-    // Validate inputs
+    const { phoneNumber, message } = req.body;
     if (!phoneNumber || !message) {
-      return handleError(res, 400, 'Missing required fields: phoneNumber, message');
+      return res.status(400).json({ error: 'Missing phoneNumber or message' });
     }
-
-    if (!validatePhone(phoneNumber)) {
-      return handleError(res, 400, 'Invalid phone number format. Expected E.164 format (e.g., +919876543210)');
-    }
-
-    if (!validateMessage(message)) {
-      return handleError(res, 400, 'Invalid message: must be 1-4096 characters');
-    }
-
-    console.log(`📤 Sending WhatsApp to ${phoneNumber}: "${message}"`);
-
     const sid = await sendWhatsAppNotification(phoneNumber, message);
-
     res.json({ success: true, messageSid: sid });
   } catch (err) {
-    handleError(res, 500, 'Failed to send WhatsApp', err);
-  }
-});
-
-// Route: Send WhatsApp Template (POST /api/twilio/send-whatsapp-template)
-app.post('/api/twilio/send-whatsapp-template', async (req, res) => {
-  try {
-    const { phoneNumber, contentSid, contentVariables } = req.body;
-
-    if (!phoneNumber || !contentSid || !contentVariables) {
-      return handleError(res, 400, 'Missing phoneNumber, contentSid, or contentVariables');
-    }
-
-    console.log(`📤 Sending WhatsApp template to ${phoneNumber}`);
-
-    const sid = await sendWhatsAppTemplate(phoneNumber, contentSid, contentVariables);
-
-    res.json({ success: true, messageSid: sid });
-  } catch (err) {
-    handleError(res, 500, 'Failed to send WhatsApp template', err);
+    res.status(500).json({ error: 'Failed to send WhatsApp', details: err.message });
   }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SUPABASE DATA LOGGING
+// DEMO PAYOUT ENDPOINT (EXCLUDING RAZORPAY AS REQUESTED)
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Route: Log claim (POST /api/claims/create)
-app.post('/api/claims/create', async (req, res) => {
-  try {
-    const { claimId, userId, payout, trigger } = req.body;
-
-    console.log(`📋 Creating claim: ${claimId}`);
-
-    const { data, error } = await supabase.from('claims').insert({
-      claim_id: claimId,
-      user_id: userId,
-      payout_amount: payout,
-      trigger_type: trigger,
-      status: 'pending',
-      created_at: new Date(),
-    });
-
-    if (error) throw error;
-
-    res.json({ success: true, claimId: claimId });
-  } catch (err) {
-    handleError(res, 500, 'Failed to create claim', err);
-  }
-});
-
-// Route: Log policy signup (POST /api/policies/create)
-app.post('/api/policies/create', async (req, res) => {
-  try {
-    const { userId, userName, platform, tier, nfi } = req.body;
-
-    console.log(`🛡️ Creating policy for ${userName}`);
-
-    const policyId = `POL-${Date.now()}`;
-
-    const { data, error } = await supabase.from('policies').insert({
-      policy_id: policyId,
-      user_id: userId,
-      user_name: userName,
-      platform: platform,
-      tier: tier,
-      nfi_score: nfi,
-      status: 'active',
-      created_at: new Date(),
-    });
-
-    if (error) throw error;
-
-    res.json({ success: true, policyId: policyId });
-  } catch (err) {
-    handleError(res, 500, 'Failed to create policy', err);
-  }
-});
-
-// Route: Get notifications (GET /api/notifications?phone=919876543210)
-app.get('/api/notifications', async (req, res) => {
-  try {
-    const { phone } = req.query;
-
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('phone', phone)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (error) throw error;
-
-    res.json({ notifications: data });
-  } catch (err) {
-    handleError(res, 500, 'Failed to fetch notifications', err);
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// RAZORPAY PAYOUT (OPTIONAL - Can add later)
-// ═══════════════════════════════════════════════════════════════════════════
-
-// For now, this is a demo endpoint that simulates a payout
 app.post('/api/payout/create', async (req, res) => {
   try {
-    const { amount, userName, userPhone, claimId } = req.body;
-
-    // Validate inputs
+    const { amount, userPhone } = req.body;
     if (!amount || !userPhone) {
-      return handleError(res, 400, 'Missing required fields: amount, userPhone');
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    if (!validateAmount(amount)) {
-      return handleError(res, 400, 'Invalid amount: must be between 1 and 999999');
-    }
-
-    if (!validatePhone(userPhone)) {
-      return handleError(res, 400, 'Invalid phone number format');
-    }
-
-    console.log(`💰 Payout request: ₹${amount} to ${userPhone}`);
-
-    // Create demo payout ID
+    console.log(`💰 Demo Payout: ₹${amount} to ${userPhone}`);
     const payoutId = `POUT-${Date.now()}`;
 
     // Log to Supabase
@@ -380,44 +141,31 @@ app.post('/api/payout/create', async (req, res) => {
       amount: amount,
       status: 'demo',
       user_phone: userPhone,
-      claim_id: claimId,
       created_at: new Date().toISOString(),
     });
 
-    // Send WhatsApp notification
-    if (userPhone) {
-      await sendWhatsAppNotification(
-        userPhone,
-        `GigShield: Your payout of ₹${amount} has been initiated. ✓`
-      );
-    }
+    // Simulated WhatsApp
+    await sendWhatsAppNotification(userPhone, `GigShield: Your payout of ₹${amount} has been initiated. ✓`);
 
-    res.json({
-      success: true,
-      payoutId: payoutId,
-      amount: amount,
-      message: 'Demo payout (Razorpay integration coming)',
-    });
+    res.json({ success: true, payoutId, amount });
   } catch (err) {
-    handleError(res, 500, 'Failed to create payout', err);
+    res.status(500).json({ error: 'Failed to create demo payout', details: err.message });
   }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// HEALTH CHECK & STATUS
+// HEALTH CHECK
 // ═══════════════════════════════════════════════════════════════════════════
 
 app.get('/health', (req, res) => {
-  const status = {
+  res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     services: {
-      twilio: process.env.TWILIO_ACCOUNT_SID ? '✓ Ready' : '✗ Missing',
-      supabase: process.env.SUPABASE_URL ? '✓ Ready' : '✗ Missing',
-      razorpay: process.env.RAZORPAY_KEY_ID ? '✓ Ready' : '⏸ Skipped (Optional)',
+      twilio: process.env.TWILIO_ACCOUNT_SID ? '✓' : '✗',
+      supabase: process.env.SUPABASE_URL ? '✓' : '✗',
     },
-  };
-  res.json(status);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -426,29 +174,7 @@ app.get('/health', (req, res) => {
 
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`
-╔══════════════════════════════════════════════════════════════════╗
-║                                                                  ║
-║         🚀 GigShield Backend - SIMPLIFIED                       ║
-║                                                                  ║
-║         📍 Local:  http://localhost:${PORT}                         ║
-║         📡 Health: http://localhost:${PORT}/health               ║
-║                                                                  ║
-║         Services:                                               ║
-║         ${process.env.TWILIO_ACCOUNT_SID ? '✓' : '✗'} Twilio WhatsApp:   Ready                  ║
-║         ${process.env.SUPABASE_URL ? '✓' : '✗'} Supabase Database: Ready                  ║
-║         ⏸ Razorpay Payouts:  Optional (add later)           ║
-║                                                                  ║
-║         Available Endpoints:                                    ║
-║         POST /api/twilio/send-whatsapp                          ║
-║         POST /api/claims/create                                 ║
-║         POST /api/policies/create                               ║
-║         POST /api/payout/create (demo)                          ║
-║         GET  /api/notifications                                 ║
-║         GET  /health                                            ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
-    `);
+    console.log(`🚀 GigShield Backend Running on http://localhost:${PORT}`);
   });
 }
 

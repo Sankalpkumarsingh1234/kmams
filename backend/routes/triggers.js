@@ -11,7 +11,7 @@ const router = Router();
  * POST /api/triggers/check/:pinCode
  * Check weather triggers for a specific pincode (for testing)
  */
-router.post('/api/triggers/check/:pinCode', async (req, res) => {
+router.post('/triggers/check/:pinCode', async (req, res) => {
   try {
     const { pinCode } = req.params;
 
@@ -33,7 +33,7 @@ router.post('/api/triggers/check/:pinCode', async (req, res) => {
  * Process weather triggers for all active users
  * (Call this via cron job or manually)
  */
-router.post('/api/triggers/process-all', async (req, res) => {
+router.post('/triggers/process-all', async (req, res) => {
   try {
     // Optional: Add secret token verification for security
     const token = req.headers['x-cron-token'];
@@ -59,7 +59,7 @@ router.post('/api/triggers/process-all', async (req, res) => {
  * POST /api/triggers/manual
  * Manually trigger a claim for testing
  */
-router.post('/api/triggers/manual', async (req, res) => {
+router.post('/triggers/manual', async (req, res) => {
   try {
     const { userId, triggerType } = req.body;
 
@@ -85,7 +85,7 @@ router.post('/api/triggers/manual', async (req, res) => {
  * GET /api/triggers/thresholds
  * Get all trigger thresholds
  */
-router.get('/api/triggers/thresholds', (req, res) => {
+router.get('/triggers/thresholds', (req, res) => {
   res.json({
     rain_mm: 35,
     heat_celsius: 42,

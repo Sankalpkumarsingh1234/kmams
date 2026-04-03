@@ -30,12 +30,16 @@ function OnboardingScreen({ onNext }) {
     
     setLoading(true);
     setError("");
+    const apiUrl = `${API_BASE}/api/users`;
+    
     try {
       const nfi = pinData?.nfi || 55;
       const earnings = parseFloat(form.earnings);
       const email = `${form.name.toLowerCase().replace(/\s+/g, "")}@gigshield.work`;
 
-      const response = await fetch(`${API_BASE}/api/users`, {
+      console.log(`Connecting to: ${apiUrl}`);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,17 +47,25 @@ function OnboardingScreen({ onNext }) {
           name: form.name,
           platform: form.platform,
           pin_code: form.pin,
-          earnings, // ALIGNED with backend
-          nfi,      // ALIGNED with backend
+          earnings,
+          nfi,
         }),
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || `Server error: ${response.status}`);
+      // Handle non-JSON responses (prevents "Unexpected token <" crash)
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Non-JSON response received:", text.substring(0, 200));
+        throw new Error(`Server returned non-JSON response (likely a 404 or backend crash). Status: ${response.status}`);
       }
 
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
       localStorage.setItem('userId', data.id);
       localStorage.setItem('userName', form.name);
       localStorage.setItem('userPhone', form.phone);
@@ -62,8 +74,8 @@ function OnboardingScreen({ onNext }) {
       
       onNext({ ...form, nfiScore: nfi, pinData: pinData || { nfi, city: "Your city", zone: "Area", reason: "Average risk" } });
     } catch (err) {
-      console.error('Failed to create user:', err);
-      setError(err.message || 'Failed to create user.');
+      console.error('API Error:', err);
+      setError(`${err.message} (URL: ${apiUrl})`);
     } finally {
       setLoading(false);
     }
