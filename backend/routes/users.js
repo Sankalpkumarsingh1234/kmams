@@ -18,7 +18,12 @@ router.post('/users', async (req, res) => {
       nfi_score,      // REVERTED
     } = req.body;
 
-    if (!email || !name || !platform || !pin_code || !earnings_weekly || !nfi_score) {
+    console.log('[API] POST /api/users request body:', req.body);
+
+    if (
+      email === undefined || name === undefined || platform === undefined || 
+      pin_code === undefined || earnings_weekly === undefined || nfi_score === undefined
+    ) {
       return res.status(400).json({
         error: 'Missing required fields: email, name, platform, pin_code, earnings_weekly, nfi_score',
       });
