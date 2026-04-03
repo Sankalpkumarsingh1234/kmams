@@ -13,10 +13,11 @@ function AIChatAssistant({ userData }) {
   const chatRef = useRef(null);
 
   const QUICK_QUESTIONS = [
-    "Am I covered for heat stress?",
-    "Why is my premium ₹" + (userData?.premium || "54") + "?",
     "When does rain trigger a payout?",
-    "How do I get my payout faster?",
+    "How is heat index calculated?",
+    "Can I get paid twice in one week?",
+    "What does an AQI of 350 mean?",
+    "How does fraud detection work?",
   ];
 
   const systemPrompt = `You are GigShield's AI assistant — a friendly, concise insurance advisor for Indian food delivery workers (Zomato/Swiggy riders).

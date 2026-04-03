@@ -1,31 +1,55 @@
 import { useState, useEffect } from "react";
-import { CITY_WEATHER_IDS } from "../data.js";
+import { api } from "../api/client.js";
 
 function LiveWeatherWidget({ city }) {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Realistic mock weather per city (fallback + demo)
-  const MOCK_WEATHER = {
-    "Chennai":   { temp: 34, humidity: 78, feels: 41, desc: "Partly cloudy", wind: 14, aqi: 82 },
-    "Mumbai":    { temp: 31, humidity: 82, feels: 38, desc: "Humid", wind: 18, aqi: 95 },
-    "Delhi":     { temp: 29, humidity: 45, feels: 31, desc: "Hazy sunshine", wind: 9, aqi: 187 },
-    "Hyderabad": { temp: 37, humidity: 55, feels: 43, desc: "Hot & sunny", wind: 11, aqi: 74 },
-    "Bangalore": { temp: 26, humidity: 68, feels: 28, desc: "Overcast", wind: 8, aqi: 61 },
-    "Jaipur":    { temp: 35, humidity: 38, feels: 37, desc: "Sunny & dry", wind: 12, aqi: 110 },
-    "Ahmedabad": { temp: 38, humidity: 42, feels: 42, desc: "Very hot", wind: 7, aqi: 128 },
-  };
-
   useEffect(() => {
-    setLoading(true);
-    setError(false);
+    let isMounted = true;
     
-    // Use mock data (can integrate with backend /api/triggers/check/:pinCode later)
-    setTimeout(() => {
-      setWeather(MOCK_WEATHER[city] || MOCK_WEATHER["Chennai"]);
-      setLoading(false);
-    }, 400);
+    const fetchLiveWeather = async () => {
+      setLoading(true);
+      setError(false);
+      
+      try {
+        // Backend maps city to pincode internally, but we can pass '600001' or similar since UI relies on exact pincodes. 
+        // For dashboard purposes, we will fetch based on demo pin code. If they gave us an actual pin, we pass it.
+        // Assuming pin comes from localStorage for now, fallback to Chennai pin
+        const userPin = localStorage.getItem('userPin') || '600001';
+        
+        const response = await api.checkWeather(userPin);
+        
+        if (isMounted) {
+          if (response.error || response.hasError) {
+            throw new Error(response.error || "Failed to fetch");
+          }
+          const w = response.weather;
+          setWeather({
+            temp: Math.round(w.temp),
+            humidity: 65, // Note: OpenWeather triggers backend didn't return humidity, we'll use a static 65 for display or fetch properly
+            feels: Math.round(w.heatIndex),
+            desc: "Live Data",
+            wind: 12,
+            aqi: w.aqi
+          });
+        }
+      } catch (err) {
+        console.error("Live weather fetch error:", err);
+        if (isMounted) {
+          setError(true);
+          // Fallback minimal obj
+          setWeather({ temp: 34, humidity: 70, feels: 41, desc: "API Error", wind: 0, aqi: 50 });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchLiveWeather();
+    
+    return () => { isMounted = false; };
   }, [city]);
 
   if (loading) return (
