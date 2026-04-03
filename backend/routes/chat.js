@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const router = Router();
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+// GROQ_API_KEY will be read dynamically in the route handler
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 /**
@@ -18,8 +18,10 @@ router.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'userMessage is required' });
     }
 
+    const apiKey = process.env.GROQ_API_KEY;
+
     // If Groq not configured, return helpful fallback
-    if (!GROQ_API_KEY) {
+    if (!apiKey) {
       return res.status(200).json({
         reply: '⚠️ [System Error]: The GROQ_API_KEY environment variable is currently completely missing or empty on Vercel! Please add your Groq API Key to the Vercel Dashboard Environment Variables and redeploy.',
         model: 'error-missing-key',
@@ -51,7 +53,7 @@ If unsure, direct them to support@gigshield.work`;
     const response = await axios.post(
       GROQ_URL,
       {
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
@@ -61,7 +63,7 @@ If unsure, direct them to support@gigshield.work`;
       },
       {
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         timeout: 15000,
       }
@@ -71,7 +73,7 @@ If unsure, direct them to support@gigshield.work`;
 
     res.json({
       reply,
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -93,7 +95,8 @@ If unsure, direct them to support@gigshield.work`;
  */
 router.post('/api/chat/health', async (req, res) => {
   try {
-    if (!GROQ_API_KEY) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
       return res.json({ status: 'unconfigured', message: 'Groq API key not set' });
     }
 
@@ -101,12 +104,12 @@ router.post('/api/chat/health', async (req, res) => {
     const response = await axios.post(
       GROQ_URL,
       {
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: 'test' }],
         max_tokens: 5,
       },
       {
-        headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+        headers: { Authorization: `Bearer ${apiKey}` },
         timeout: 5000,
       }
     );

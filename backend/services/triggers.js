@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAllActiveUsers, getUserProfile, logClaim, logWeatherData } from '../config/supabase.js';
 
-const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
+// API key is dynamically loaded in function
 const OPENWEATHER_URL = 'https://api.openweathermap.org/data/2.5';
 
 // Location mapping - Pincode to Lat/Lon
@@ -75,7 +75,8 @@ function mapAQIScore(level) {
  */
 export async function checkWeatherTriggers(pinCode) {
   try {
-    if (!OPENWEATHER_API_KEY) {
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (!apiKey) {
       console.warn('OpenWeatherMap API key not configured - using mock data');
       return { triggered: [], hasError: true };
     }
@@ -87,7 +88,7 @@ export async function checkWeatherTriggers(pinCode) {
       params: {
         lat: location.lat,
         lon: location.lon,
-        appid: OPENWEATHER_API_KEY,
+        appid: apiKey,
         units: 'metric',
       },
       timeout: 5000,
@@ -104,7 +105,7 @@ export async function checkWeatherTriggers(pinCode) {
       params: {
         lat: location.lat,
         lon: location.lon,
-        appid: OPENWEATHER_API_KEY,
+        appid: apiKey,
       },
       timeout: 5000,
     });

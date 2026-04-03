@@ -11,6 +11,7 @@
 
 const TWILIO_PHONE_NUMBER = import.meta.env.VITE_TWILIO_PHONE || 'whatsapp:+14155238886';
 const TWILIO_ACCOUNT_SID = import.meta.env.VITE_TWILIO_ACCOUNT_SID || 'YOUR_ACCOUNT_SID';
+const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
 export const sendPayoutNotification = async (riderPhone, payoutAmount, trigger) => {
   try {
@@ -23,11 +24,11 @@ export const sendPayoutNotification = async (riderPhone, payoutAmount, trigger) 
     
     const message = `🛡️ *GigShield Payout*\n\nYour automatic payout of *₹${payoutAmount}* has been sent!\n\nTrigger: ${trigger}\nStatus: Credited to your bank account\n\nRef: GS${Date.now().toString().slice(-6)}`;
     
-    const response = await fetch('/api/twilio/send-whatsapp', {
+    const response = await fetch(`${API_BASE}/api/twilio/send-whatsapp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: `whatsapp:${riderPhone}`,
+        phoneNumber: riderPhone,
         message,
         type: 'payout_notification',
       }),
@@ -48,11 +49,11 @@ export const sendOnboardingMessage = async (riderPhone, riderName) => {
   try {
     const message = `👋 Welcome to *GigShield*, ${riderName}!\n\nYour income protection is now active. You'll get instant payouts when disruptions happen.\n\n📍 Zone: Based on your pin code\n💰 Coverage: Your selected plan\n✅ Status: Protected`;
     
-    const response = await fetch('/api/twilio/send-whatsapp', {
+    const response = await fetch(`${API_BASE}/api/twilio/send-whatsapp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: `whatsapp:${riderPhone}`,
+        phoneNumber: riderPhone,
         message,
         type: 'onboarding',
       }),
@@ -69,11 +70,11 @@ export const sendAlertNotification = async (riderPhone, alert) => {
   try {
     const message = `🚨 *GigShield Alert*\n\n${alert.title}\n${alert.description}\n\nStorm Window: Extend coverage for +₹8?`;
     
-    const response = await fetch('/api/twilio/send-whatsapp', {
+    const response = await fetch(`${API_BASE}/api/twilio/send-whatsapp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: `whatsapp:${riderPhone}`,
+        phoneNumber: riderPhone,
         message,
         type: 'alert',
       }),

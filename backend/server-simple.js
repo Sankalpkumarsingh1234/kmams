@@ -77,10 +77,14 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // SERVICE INITIALIZATION
 // ══════════════════════════════════════════════════════════════════════════
 
-const twilioClient = process.env.TWILIO_ACCOUNT_SID ? twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-) : null;
+function getTwilioClient() {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token || token === 'your_auth_token_here') {
+    return null;
+  }
+  return twilio(sid, token);
+}
 
 const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) 
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
@@ -139,7 +143,10 @@ async function sendWhatsAppNotification(phoneNumber, message) {
       throw new Error('Invalid message: must be 1-4096 characters');
     }
 
-    const msg = await twilioClient.messages.create({
+    const client = getTwilioClient();
+    if (!client) throw new Error('Twilio credentials not configured');
+
+    const msg = await client.messages.create({
       from: process.env.TWILIO_PHONE,
       to: `whatsapp:${phoneNumber}`,
       body: message,
@@ -180,7 +187,10 @@ async function sendWhatsAppNotification(phoneNumber, message) {
  */
 async function sendWhatsAppTemplate(phoneNumber, contentSid, contentVariables) {
   try {
-    const message = await twilioClient.messages.create({
+    const client = getTwilioClient();
+    if (!client) throw new Error('Twilio credentials not configured');
+
+    const message = await client.messages.create({
       from: process.env.TWILIO_PHONE,
       contentSid: contentSid,
       contentVariables: JSON.stringify(contentVariables),

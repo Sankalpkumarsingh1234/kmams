@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { supabase } from '../config/supabase.js'
 
-const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY
+// Key will be loaded dynamically using process.env.OPENWEATHER_API_KEY
 
 // Parametric trigger thresholds
 const THRESHOLDS = {
@@ -33,7 +33,8 @@ export async function checkWeatherTriggers(pinCode) {
       return { triggered: [], weather: null }
     }
 
-    if (!OPENWEATHER_KEY) {
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (!apiKey) {
       console.warn('⚠️ OPENWEATHER_API_KEY not set. Weather triggers disabled.')
       return { triggered: [], weather: null }
     }
@@ -43,7 +44,7 @@ export async function checkWeatherTriggers(pinCode) {
       params: {
         lat: location.lat,
         lon: location.lon,
-        appid: OPENWEATHER_KEY,
+        appid: apiKey,
         units: 'metric'
       }
     })
@@ -82,7 +83,7 @@ export async function checkWeatherTriggers(pinCode) {
         params: {
           lat: location.lat,
           lon: location.lon,
-          appid: OPENWEATHER_KEY
+          appid: apiKey
         }
       })
 
