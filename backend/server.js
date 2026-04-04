@@ -25,6 +25,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+import disruptionsRoute from './routes/disruptions.js';
+app.use('/api', disruptionsRoute);
+
 // ── Initialize Services ────────────────────────────────────────────────────
 // const razorpay = new Razorpay({
 //   key_id: process.env.VITE_RAZORPAY_KEY_ID,

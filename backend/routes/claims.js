@@ -4,7 +4,9 @@ import {
   getUserClaims,
   getAllClaims,
   updateClaimStatus,
+  getUserProfile,
 } from '../config/supabase.js';
+import { analyzeClaimFraud } from '../services/fraud_ai.js';
 
 const router = Router();
 
@@ -14,7 +16,7 @@ router.post('/claims', async (req, res) => {
       user_id,
       policy_id,
       trigger,
-      amount_triggered, // REVERTED amount -> amount_triggered
+      amount_triggered,
       weather_data,
     } = req.body;
 
@@ -24,17 +26,32 @@ router.post('/claims', async (req, res) => {
       });
     }
 
+    // Capture User Data for AI Analysis
+    const profile = await getUserProfile(user_id);
+    const userData = profile.user || {};
+
+    // 🔍 Real-time AI Fraud Analysis
+    console.log(`[AI Fraud] Analyzing claim for ${userData.name}...`);
+    const aiAnalysis = await analyzeClaimFraud(
+      { trigger, amount_triggered },
+      userData,
+      weather_data || {}
+    );
+
     const claim = await logClaim({
       user_id,
       policy_id,
       trigger,
       amount_triggered,
       weather_data,
+      fraud_score: aiAnalysis.score,
+      fraud_analysis: aiAnalysis.analysis
     });
 
     res.status(201).json({
       id: claim.id,
-      message: 'Claim logged successfully',
+      message: 'Claim logged and analyzed by AI',
+      fraud_score: aiAnalysis.score, // Only returned for audit/log
       ...claim,
     });
   } catch (error) {

@@ -159,8 +159,9 @@ export async function logClaim(claimData) {
         trigger,
         amount_triggered,
         weather_data,
-        status: 'paid',
-        paid_at: new Date().toISOString(),
+        fraud_score: claimData.fraud_score || 0,
+        fraud_analysis: claimData.fraud_analysis || 'No analysis available',
+        status: 'pending', // Change to pending for admin review
       }])
       .select()
       .single();

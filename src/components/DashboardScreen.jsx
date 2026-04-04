@@ -10,6 +10,7 @@ import ClaimsHistory from "./ClaimsHistory.jsx";
 import PolicyReceipt from "./PolicyReceipt.jsx";
 import WhatsAppScreen from "./WhatsAppScreen.jsx";
 import UPIPaymentFlow from "./UPIPaymentFlow.jsx";
+import LiveDisruptionFeed from "./LiveDisruptionFeed.jsx";
 
 const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
@@ -238,21 +239,8 @@ function DashboardScreen({ data, onBack }) {
               <span style={{ fontSize: 10, color: "#9B9589" }}>{t('live')}</span>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-            {DISRUPTION_FEED.map(item => (
-              <div key={item.id} style={{ display: "flex", gap: 10, padding: "9px 11px", background: "#FAFAF8", border: "1px solid #E0D9D0", borderRadius: 10, alignItems: "center" }}>
-                <div style={{ fontSize: 18 }}>{item.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#1A1512" }}>{item.title}</div>
-                  <div style={{ fontSize: 10, color: "#6B6258" }}>{item.desc}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <Badge text={item.severity} color={sevColor[item.severity]} bg={item.severity === "high" ? "#FEE2E2" : "#FEF3C7"} />
-                  <div style={{ fontSize: 9, color: "#9B9589", marginTop: 2 }}>{item.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+          
+          <LiveDisruptionFeed pinCode={pinData?.pin_code || data?.pin_code} />
         </>
       )}
 
