@@ -18,7 +18,7 @@ router.get('/disruptions/:pinCode', async (req, res) => {
     const weatherStatus = await checkWeatherTriggers(pinCode);
     
     // Format into a "Feed" style response
-    const disruptions = weatherStatus.triggered.map(t => ({
+    let disruptions = weatherStatus.triggered.map(t => ({
       id: Date.now() + Math.random(),
       type: t.type,
       severity: t.value > 50 ? 'High' : 'Medium',
@@ -27,6 +27,20 @@ router.get('/disruptions/:pinCode', async (req, res) => {
       timestamp: weatherStatus.timestamp,
       icon: getIcon(t.type)
     }));
+
+    // [DEMO MODE FALLBACK] - If no real disruptions, provide mock for verification
+    if (disruptions.length === 0) {
+      disruptions = [{
+        id: 'demo-1',
+        type: 'rain',
+        severity: 'Medium',
+        location: weatherStatus.weather.location,
+        message: 'Normal Rainfall detected. Premium coverage is ACTIVE for your zone.',
+        timestamp: new Date().toISOString(),
+        icon: '🌧️',
+        isDemo: true
+      }];
+    }
 
     res.json({
       location: weatherStatus.weather.location,

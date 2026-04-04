@@ -32,6 +32,7 @@ import claimsRouter from './routes/claims.js';
 import chatRouter from './routes/chat.js';
 import triggersRouter from './routes/triggers.js';
 import notificationsRouter from './routes/notifications.js';
+import disruptionsRouter from './routes/disruptions.js';
 
 // ══════════════════════════════════════════════════════════════════════════
 // ENVIRONMENT VALIDATION
@@ -81,6 +82,7 @@ app.use('/api', claimsRouter);
 app.use('/api', chatRouter);
 app.use('/api', triggersRouter);
 app.use('/api', notificationsRouter);
+app.use('/api', disruptionsRouter);
 
 // ══════════════════════════════════════════════════════════════════════════
 // TWILIO WHATSAPP HELPERS
