@@ -509,8 +509,3 @@ export default function InsurerDashboard({ onBack }) {
     </div>
   );
 }
-
-      </div>
-    </div>
-  );
-}
