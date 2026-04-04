@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/static-build"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
       "src": "backend/server-simple.js",
@@ -13,6 +16,10 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
+      "destination": "/backend/server-simple.js"
+    },
+    {
+      "source": "/health",
       "destination": "/backend/server-simple.js"
     },
     {
