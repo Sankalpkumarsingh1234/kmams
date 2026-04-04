@@ -38,18 +38,70 @@ router.get('/disruptions/:pinCode', async (req, res) => {
       icon: getIcon(t.type)
     }));
 
-    // [DEMO MODE FALLBACK] - If no real disruptions OR demo query is set
+    // [DEMO MODE FALLBACK] - Matches the user's requested design items
     if (disruptions.length === 0 || isDemoQuery) {
-      disruptions = [{
-        id: 'demo-rain',
-        type: 'rain',
-        severity: 'Medium',
-        location: weatherStatus.weather.location || 'Your Area',
-        message: 'Live Disruption: Heavy rain detected in your zone. Your 100% coverage is now ACTIVE.',
-        timestamp: new Date().toISOString(),
-        icon: '🌧️',
-        isDemo: true
-      }];
+      disruptions = [
+        {
+          id: 'd1',
+          type: 'rain',
+          severity: 'HIGH',
+          location: 'Your Area',
+          message: 'Heavy Rainfall Alert: 58mm in 2 hrs — threshold crossed',
+          timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
+          icon: '🌧️',
+          isDemo: true
+        },
+        {
+          id: 'd2',
+          type: 'heat',
+          severity: 'HIGH',
+          location: 'Your Area',
+          message: 'Heat Stress Index: Feels-like 44°C — outdoor work unsafe',
+          timestamp: new Date(Date.now() - 8 * 60000).toISOString(),
+          icon: '🌡️',
+          isDemo: true
+        },
+        {
+          id: 'd3',
+          type: 'aqi',
+          severity: 'MEDIUM',
+          location: 'Your Area',
+          message: 'Severe AQI Warning: AQI 387 — Very Poor air quality',
+          timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
+          icon: '🌫️',
+          isDemo: true
+        },
+        {
+          id: 'd4',
+          type: 'flood',
+          severity: 'HIGH',
+          location: 'Your Area',
+          message: 'Waterlogging Alert: Pin-code 600028 — Red alert issued',
+          timestamp: new Date(Date.now() - 22 * 60000).toISOString(),
+          icon: '🌊',
+          isDemo: true
+        },
+        {
+          id: 'd5',
+          type: 'outage',
+          severity: 'MEDIUM',
+          location: 'Platform',
+          message: 'Platform Downtime: Swiggy outage detected — 95 min',
+          timestamp: new Date(Date.now() - 31 * 60000).toISOString(),
+          icon: '📵',
+          isDemo: true
+        },
+        {
+          id: 'd6',
+          type: 'curfew',
+          severity: 'HIGH',
+          location: 'Zone',
+          message: 'Local Curfew: Section 144 — Shahdara zone',
+          timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+          icon: '🚧',
+          isDemo: true
+        }
+      ];
     }
 
     res.json({

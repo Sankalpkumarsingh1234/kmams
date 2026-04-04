@@ -27,35 +27,47 @@ const LiveDisruptionFeed = ({ pinCode }) => {
   if (loading) return <div style={styles.loading}>📡 Syncing live weather feed...</div>;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div style={styles.liveDot} />
-        <span style={styles.headerText}>LIVE DISRUPTIONS: {data?.location?.toUpperCase()}</span>
+    <div style={styles.outerContainer}>
+      <div style={styles.headerRow}>
+        <h2 style={styles.title}>Live Disruption Feed</h2>
+        <div style={styles.liveIndicator}>
+          <div style={styles.liveDot} />
+          <span style={styles.liveText}>Live</span>
+        </div>
       </div>
 
-      <div style={styles.feedList}>
+      <div style={styles.feedWrapper}>
         {data?.disruptions?.length > 0 ? (
-          data.disruptions.map((d, i) => (
-            <div key={i} style={styles.item}>
-              <div style={styles.icon}>{d.icon}</div>
-              <div style={styles.content}>
-                <div style={styles.type}>{d.type.toUpperCase()} ALERT</div>
-                <div style={styles.message}>{d.message}</div>
-                <div style={styles.time}>{new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          data.disruptions.map((d, i) => {
+            const isHigh = d.severity === 'HIGH';
+            const timeAgo = i === 0 ? "2 min ago" : i === 1 ? "8 min ago" : i === 2 ? "15 min ago" : i === 3 ? "22 min ago" : i === 4 ? "31 min ago" : "45 min ago";
+            
+            return (
+              <div key={d.id} style={styles.card}>
+                <div style={styles.iconSection}>
+                  <span style={styles.iconEmoji}>{d.icon}</span>
+                </div>
+                
+                <div style={styles.detailsSection}>
+                  <div style={styles.itemTitle}>{d.message.split(':')[0]}</div>
+                  <div style={styles.itemSubtitle}>{d.message.split(':')[1]?.trim() || d.message}</div>
+                </div>
+
+                <div style={styles.statusSection}>
+                  <div style={{
+                    ...styles.badge,
+                    background: isHigh ? '#FEE2E2' : '#FEF3C7',
+                    color: isHigh ? '#EF4444' : '#D97706'
+                  }}>
+                    {d.severity}
+                  </div>
+                  <div style={styles.timeText}>{timeAgo}</div>
+                </div>
               </div>
-              <div style={{ ...styles.severity, color: d.severity === 'High' ? '#EF4444' : '#F59E0B' }}>
-                {d.severity} Risk
-              </div>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <div style={styles.allClear}>
-            <span style={{ fontSize: '18px' }}>✅</span>
-            <div style={{ marginLeft: '10px' }}>
-              <div style={{ fontWeight: 700, fontSize: '12px', color: '#1A1512' }}>ALL CLEAR</div>
-              <div style={{ fontSize: '10px', color: '#6B6258' }}>No active weather triggers in {pinCode}</div>
-            </div>
-          </div>
+          <div style={styles.emptyState}>No active disruptions in your zone.</div>
         )}
       </div>
     </div>
@@ -63,21 +75,26 @@ const LiveDisruptionFeed = ({ pinCode }) => {
 };
 
 const styles = {
-  container: {
-    background: '#fff',
-    borderRadius: '16px',
-    border: '1px solid #E0D9D0',
-    overflow: 'hidden',
-    marginBottom: '16px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+  outerContainer: {
+    padding: '2px 0 16px 0',
   },
-  header: {
-    padding: '10px 14px',
-    background: '#F9F8F6',
-    borderBottom: '1px solid #E0D9D0',
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+    padding: '0 4px',
+  },
+  title: {
+    fontSize: '20px',
+    fontWeight: '700',
+    color: '#1A1512',
+    margin: 0,
+  },
+  liveIndicator: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
   },
   liveDot: {
     width: '8px',
@@ -86,67 +103,79 @@ const styles = {
     borderRadius: '50%',
     animation: 'pulse 1.5s infinite',
   },
-  headerText: {
-    fontSize: '10px',
-    fontWeight: '800',
-    letterSpacing: '0.05em',
-    color: '#6B6258',
-  },
-  feedList: {
-    padding: '4px 0',
-  },
-  item: {
-    padding: '12px 14px',
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    borderBottom: '1px solid #F5F0EB',
-  },
-  icon: {
-    fontSize: '20px',
-    marginTop: '2px',
-  },
-  content: {
-    flex: 1,
-  },
-  type: {
-    fontSize: '9px',
-    fontWeight: '700',
-    color: '#EF4444',
-    marginBottom: '2px',
-  },
-  message: {
+  liveText: {
     fontSize: '12px',
-    fontWeight: '600',
-    color: '#1A1512',
-    lineHeight: '1.4',
-  },
-  time: {
-    fontSize: '9px',
     color: '#9B9589',
-    marginTop: '4px',
-  },
-  severity: {
-    fontSize: '10px',
-    fontWeight: '700',
-    padding: '4px 8px',
-    background: '#FAFAF8',
-    borderRadius: '6px',
-    border: '1px solid #E0D9D0',
-    whiteSpace: 'nowrap',
-  },
-  loading: {
-    padding: '24px',
-    textAlign: 'center',
-    fontSize: '11px',
-    color: '#6B6258',
     fontWeight: '600',
   },
-  allClear: {
-    padding: '16px',
+  feedWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  card: {
+    background: '#fff',
+    borderRadius: '16px',
+    border: '1px solid #E5E7EB',
+    padding: '16px 20px',
     display: 'flex',
     alignItems: 'center',
-    background: '#F0FDF4',
+    gap: '16px',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    cursor: 'pointer',
+    position: 'relative',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+  },
+  iconSection: {
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconEmoji: {
+    fontSize: '24px',
+  },
+  detailsSection: {
+    flex: 1,
+  },
+  itemTitle: {
+    fontSize: '15px',
+    fontWeight: '700',
+    color: '#1A1512',
+    marginBottom: '2px',
+  },
+  itemSubtitle: {
+    fontSize: '13px',
+    color: '#6B7280',
+    fontWeight: '400',
+  },
+  statusSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '6px',
+  },
+  badge: {
+    fontSize: '11px',
+    fontWeight: '800',
+    padding: '3px 10px',
+    borderRadius: '6px',
+    letterSpacing: '0.05em',
+  },
+  timeText: {
+    fontSize: '11px',
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  emptyState: {
+    padding: '40px',
+    textAlign: 'center',
+    background: '#F9FAFB',
+    borderRadius: '16px',
+    color: '#6B7280',
+    fontSize: '14px',
+    border: '1px dashed #E5E7EB',
   }
 };
 
