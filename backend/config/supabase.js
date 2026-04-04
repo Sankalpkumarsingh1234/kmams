@@ -64,6 +64,24 @@ export async function getUserProfile(userId) {
     throw error;
   }
 }
+/**
+ * Get user by email
+ */
+export async function getUserByEmail(email) {
+  try {
+    const { data: user, error } = await getSupabaseClient()
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error) throw error;
+    return user;
+  } catch (error) {
+    console.error('getUserByEmail error:', error);
+    throw error;
+  }
+}
 
 /**
  * Create new user
@@ -240,7 +258,7 @@ export async function getAllClaims() {
   try {
     const { data: claims, error } = await getSupabaseClient()
       .from('claims')
-      .select('*, users(name, platform, pin_code)')
+      .select('*, users(name, platform, pin_code, nfi_score)')
       .order('created_at', { ascending: false })
       .limit(50);
 

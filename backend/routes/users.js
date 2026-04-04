@@ -3,6 +3,7 @@ import {
   createUser,
   getUserProfile,
   getUserClaims,
+  getUserByEmail,
 } from '../config/supabase.js';
 
 const router = Router();
@@ -69,6 +70,19 @@ router.get('/users/:userId/claims', async (req, res) => {
     res.json({ claims, count: claims.length });
   } catch (error) {
     console.error('GET /api/users/:userId/claims error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/lookup/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    if (!email) return res.status(400).json({ error: 'email is required' });
+    const user = await getUserByEmail(email);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('GET /api/users/lookup/:email error:', error);
     res.status(500).json({ error: error.message });
   }
 });

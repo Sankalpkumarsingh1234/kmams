@@ -240,7 +240,7 @@ function DashboardScreen({ data, onBack }) {
             </div>
           </div>
           
-          <LiveDisruptionFeed pinCode={pinData?.pin_code || data?.pin_code} />
+          <LiveDisruptionFeed pinCode={pinData?.pin_code || data?.pin_code || data?.pin} />
         </>
       )}
 

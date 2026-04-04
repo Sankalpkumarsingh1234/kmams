@@ -6,7 +6,7 @@ import Badge from "./Badge.jsx";
 
 const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
 
-function OnboardingScreen({ onNext }) {
+function OnboardingScreen({ onNext, onLoginClick }) {
   const { t } = useLanguage();
   const [form, setForm] = useState({ name: "", phone: "", pin: "", platform: "Zomato", earnings: "" });
   const [pinData, setPinData] = useState(null);
@@ -103,6 +103,11 @@ function OnboardingScreen({ onNext }) {
       </div>
       {error && <div style={{ marginTop: 16, padding: 12, background: "#FEE2E2", borderRadius: 8, color: "#DC2626", fontSize: 13 }}>{error}</div>}
       <button onClick={handleCreateUser} disabled={!valid || loading} style={ctaBtn}>{loading ? 'Creating...' : t('calculateRisk')}</button>
+      
+      <div style={{ textAlign: "center", marginTop: 20 }}>
+        <span style={{ fontSize: 13, color: "#9B9589" }}>Already have an account? </span>
+        <button onClick={onLoginClick} style={{ background: "none", border: "none", color: "#FF6B35", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Sign in here</button>
+      </div>
     </div>
   );
 }

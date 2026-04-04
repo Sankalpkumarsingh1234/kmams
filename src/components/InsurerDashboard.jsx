@@ -299,7 +299,16 @@ export default function InsurerDashboard({ onBack }) {
                       <div style={{ fontSize: 10, color: "#9B9589" }}>{date} · PIN: {c.users?.pin_code || "—"}</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                      <Badge text={badge.text} color={badge.color} bg={badge.bg} />
+                      <div style={{ display: "flex", gap: 4 }}>
+                        {c.users?.nfi_score !== undefined && (
+                          <Badge 
+                            text={`Rider Risk: ${c.users.nfi_score}`} 
+                            color={c.users.nfi_score > 70 ? "#991B1B" : c.users.nfi_score > 40 ? "#92400E" : "#2D6B4A"} 
+                            bg={c.users.nfi_score > 70 ? "#FEE2E2" : c.users.nfi_score > 40 ? "#FEF3C7" : "#E8F5EE"} 
+                          />
+                        )}
+                        <Badge text={badge.text} color={badge.color} bg={badge.bg} />
+                      </div>
                       {c.status === "pending" && (
                         <div style={{ display: "flex", gap: 6 }}>
                           <button
