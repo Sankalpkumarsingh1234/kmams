@@ -1,3 +1,4 @@
+// [PRODUCTION_SYNC] Ensuring this file is up to date in the repository
 import { useState, useEffect } from "react";
 
 const API_BASE = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');

@@ -1,3 +1,4 @@
+// [PRODUCTION_SYNC] Ensuring this file is up to date in the repository
 import { useState, useRef, useEffect } from "react";
 import { LanguageProvider, useLanguage } from "./i18n/LanguageContext.jsx";
 import StepDots from "./components/StepDots.jsx";
