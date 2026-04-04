@@ -56,6 +56,18 @@ function PolicyScreen({ data, onNext, onBack }) {
             });
             if (!response.ok) throw new Error(`Server error: ${response.status}`);
             const policyData = await response.json();
+            
+            // Record initial premium payment
+            await fetch(`${API_BASE}/api/payments`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: userId,
+                amount: premium,
+                platform: data.platform || 'UPI'
+              }),
+            }).catch(e => console.error("Payment log failed", e));
+
             localStorage.setItem('policyId', policyData.id || policyData.policy_id);
             onNext({ ...data, tier: selected, premium });
           } catch (err) {

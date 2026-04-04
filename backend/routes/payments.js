@@ -1,60 +1,31 @@
 import { Router } from 'express';
+import { logPayment } from '../config/supabase.js';
 
 const router = Router();
 
 /**
- * RAZORPAY PAYMENT INTEGRATION - DISABLED TEMPORARILY
- * Will be enabled after KYC and business verification
- * 
- * All payment endpoints return 503 (Service Unavailable)
+ * POST /api/payments
+ * Record a successful premium payment (Simulated or Real)
  */
+router.post('/', async (req, res) => {
+  try {
+    const { user_id, amount, platform } = req.body;
+    if (!user_id || !amount) {
+      return res.status(400).json({ error: 'user_id and amount are required' });
+    }
 
-/**
- * POST /api/payment/create-order
- * DISABLED - Coming soon
- */
-router.post('/api/payment/create-order', async (req, res) => {
-  return res.status(503).json({
-    error: 'Payment service temporarily disabled',
-    message: 'Razorpay integration will be enabled after KYC verification',
-    status: 'disabled',
-    nextStep: 'Submit KYC verification for business account',
-  });
-});
+    const payment = await logPayment({
+      user_id,
+      amount,
+      platform: platform || 'UPI',
+      status: 'success'
+    });
 
-/**
- * POST /api/payment/verify
- * DISABLED - Coming soon
- */
-router.post('/api/payment/verify', async (req, res) => {
-  return res.status(503).json({
-    error: 'Payment service temporarily disabled',
-    message: 'Razorpay integration will be enabled after KYC verification',
-    status: 'disabled',
-  });
-});
-
-/**
- * GET /api/payment/status/:orderId
- * DISABLED - Coming soon
- */
-router.get('/api/payment/status/:orderId', async (req, res) => {
-  return res.status(503).json({
-    error: 'Payment service temporarily disabled',
-    message: 'Razorpay integration will be enabled after KYC verification',
-    status: 'disabled',
-  });
-});
-
-/**
- * POST /api/payment/webhook
- * DISABLED - Coming soon
- */
-router.post('/api/payment/webhook', (req, res) => {
-  return res.status(503).json({
-    error: 'Webhook service disabled',
-    message: 'Razorpay webhooks will be available after KYC verification',
-  });
+    res.status(201).json(payment);
+  } catch (err) {
+    console.error('POST /api/payments error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

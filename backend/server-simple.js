@@ -44,6 +44,8 @@ import chatRouter from './routes/chat.js';
 import triggersRouter from './routes/triggers.js';
 import notificationsRouter from './routes/notifications.js';
 import disruptionsRouter from './routes/disruptions.js';
+import paymentsRouter from './routes/payments.js';
+import adminRouter from './routes/admin.js';
 
 // ══════════════════════════════════════════════════════════════════════════
 // EXPRESS SETUP

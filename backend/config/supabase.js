@@ -292,3 +292,70 @@ export async function updateClaimStatus(claimId, status) {
     throw error;
   }
 }
+/**
+ * Log a payment (premiums)
+ */
+export async function logPayment(paymentData) {
+  const { user_id, amount, platform, status } = paymentData;
+  try {
+    const { data: payment, error } = await getSupabaseClient()
+      .from('payments')
+      .insert([{
+        user_id,
+        amount,
+        platform,
+        status: status || 'success',
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return payment;
+  } catch (error) {
+    console.error('logPayment error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all payments (Admin Revenue tracking)
+ */
+export async function getAllPayments() {
+  try {
+    const { data: payments, error } = await getSupabaseClient()
+      .from('payments')
+      .select('*, users(name, email)')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return payments || [];
+  } catch (error) {
+    console.error('getAllPayments error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get unified stats for admin dashboard
+ */
+export async function getAdminStats() {
+  try {
+    const { data: claims } = await getSupabaseClient().from('claims').select('amount_triggered, status');
+    const { data: payments } = await getSupabaseClient().from('payments').select('amount');
+    const { count: usersCount } = await getSupabaseClient().from('users').select('*', { count: 'exact', head: true });
+
+    const totalPaid = claims?.filter(c => c.status === 'paid').reduce((s, c) => s + (c.amount_triggered || 0), 0) || 0;
+    const totalRevenue = payments?.reduce((s, p) => s + (p.amount || 0), 0) || 0;
+
+    return {
+      totalPaid,
+      totalRevenue,
+      usersCount: usersCount || 0,
+      claimsCount: claims?.length || 0
+    };
+  } catch (error) {
+    console.error('getAdminStats error:', error);
+    throw error;
+  }
+}

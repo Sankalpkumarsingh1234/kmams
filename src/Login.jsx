@@ -130,6 +130,27 @@ function AppContent() {
   const contentRef = useRef(null);
   const isMobile = useIsMobile();
 
+  // Auto-login from localStorage
+  useEffect(() => {
+    const savedId = localStorage.getItem('userId');
+    if (savedId) {
+      const savedName = localStorage.getItem('userName');
+      const savedPin = localStorage.getItem('userPin');
+      const savedNfi = localStorage.getItem('nfiScore');
+      if (savedName && savedPin) {
+        setUserData({
+          id: savedId,
+          name: savedName,
+          pin_code: savedPin,
+          nfi_score: savedNfi,
+          nfiScore: savedNfi,
+          pinData: { city: "Detected", zone: "Your Zone", nfi: savedNfi, pin_code: savedPin }
+        });
+        setStep(3); // Go straight to dashboard
+      }
+    }
+  }, []);
+
   function goNext(data) {
     setUserData(prev => ({ ...prev, ...data }));
     setStep(s => s + 1);
