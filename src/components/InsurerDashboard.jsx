@@ -137,7 +137,9 @@ function InsurerDashboard({ onBack }) {
           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", minHeight: 100 }}>
              {loading && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>Loading live claims...</div>}
              {error && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#EF4444" }}>{error}</div>}
-             {!loading && !error && claims.length === 0 && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>No active claims detected.</d              {claims.map((c, i) => (
+             {!loading && !error && claims.length === 0 && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>No active claims detected.</div>}
+             
+             {claims.map((c, i) => (
                 <div key={c.id} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
@@ -171,8 +173,6 @@ function InsurerDashboard({ onBack }) {
                   {/* Real-time AI Fraud Score (Private to Admin) */}
                   <FraudScoreVisualiser claim={c} />
                 </div>
-              ))}
-iv>
               ))}
           </div>
         )}
