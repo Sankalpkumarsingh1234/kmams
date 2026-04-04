@@ -38,74 +38,76 @@ router.get('/disruptions/:pinCode', async (req, res) => {
       icon: getIcon(t.type)
     }));
 
-    // [DEMO MODE FALLBACK] - Matches the user's requested design items
-    if (disruptions.length === 0 || isDemoQuery) {
-      disruptions = [
+    // [DYNAMIC DUAL MODE] - Real weather + Location-specific Mock Alerts
+    const pinPrefix = pinCode.substring(0, 3);
+    const mockLocation = weatherStatus.weather.location || 'Your Area';
+    
+    // Default Mock Alerts
+    let mockAlerts = [];
+    
+    if (pinPrefix === '600') {
+      // Chennai Specific
+      mockAlerts = [
         {
-          id: 'd1',
-          type: 'rain',
-          severity: 'HIGH',
-          location: 'Your Area',
+          id: 'c1', type: 'rain', severity: 'HIGH', location: mockLocation,
           message: 'Heavy Rainfall Alert: 58mm in 2 hrs — threshold crossed',
-          timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
-          icon: '🌧️',
-          isDemo: true
+          timestamp: new Date(Date.now() - 2 * 60000).toISOString(), icon: '🌧️',
         },
         {
-          id: 'd2',
-          type: 'heat',
-          severity: 'HIGH',
-          location: 'Your Area',
-          message: 'Heat Stress Index: Feels-like 44°C — outdoor work unsafe',
-          timestamp: new Date(Date.now() - 8 * 60000).toISOString(),
-          icon: '🌡️',
-          isDemo: true
+          id: 'c2', type: 'flood', severity: 'HIGH', location: mockLocation,
+          message: `Waterlogging Alert: Pin-code ${pinCode} — Red alert in ${mockLocation}`,
+          timestamp: new Date(Date.now() - 22 * 60000).toISOString(), icon: '🌊',
+        }
+      ];
+    } else if (pinPrefix === '110') {
+      // Delhi Specific
+      mockAlerts = [
+        {
+          id: 'd1', type: 'aqi', severity: 'HIGH', location: mockLocation,
+          message: 'Severe AQI Warning: AQI 412 — Hazardous air quality in Delhi NCR',
+          timestamp: new Date(Date.now() - 10 * 60000).toISOString(), icon: '🌫️',
         },
         {
-          id: 'd3',
-          type: 'aqi',
-          severity: 'MEDIUM',
-          location: 'Your Area',
-          message: 'Severe AQI Warning: AQI 387 — Very Poor air quality',
-          timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-          icon: '🌫️',
-          isDemo: true
+          id: 'd2', type: 'heat', severity: 'MEDIUM', location: mockLocation,
+          message: 'Heat Stress Index: Feels-like 43°C — outdoor work advisory',
+          timestamp: new Date(Date.now() - 35 * 60000).toISOString(), icon: '🌡️',
+        }
+      ];
+    } else if (pinPrefix === '560') {
+      // Bangalore Specific
+      mockAlerts = [
+        {
+          id: 'b1', type: 'traffic', severity: 'HIGH', location: mockLocation,
+          message: 'Traffic Jam Alert: Silk Board junction — 45 min delay',
+          timestamp: new Date(Date.now() - 5 * 60000).toISOString(), icon: '🚦',
         },
         {
-          id: 'd4',
-          type: 'flood',
-          severity: 'HIGH',
-          location: 'Your Area',
-          message: 'Waterlogging Alert: Pin-code 600028 — Red alert issued',
-          timestamp: new Date(Date.now() - 22 * 60000).toISOString(),
-          icon: '🌊',
-          isDemo: true
+          id: 'b2', type: 'rain', severity: 'MEDIUM', location: mockLocation,
+          message: 'Sudden Rain Alert: 12mm in Whitefield — stay covered',
+          timestamp: new Date(Date.now() - 12 * 60000).toISOString(), icon: '🌧️',
+        }
+      ];
+    } else {
+      // Generic Fallback
+      mockAlerts = [
+        {
+          id: 'g1', type: 'shield', severity: 'MEDIUM', location: mockLocation,
+          message: `GigShield Active: Syncing live data for zone ${pinCode}`,
+          timestamp: new Date(Date.now() - 5 * 60000).toISOString(), icon: '🛡️',
         },
         {
-          id: 'd5',
-          type: 'outage',
-          severity: 'MEDIUM',
-          location: 'Platform',
-          message: 'Platform Downtime: Swiggy outage detected — 95 min',
-          timestamp: new Date(Date.now() - 31 * 60000).toISOString(),
-          icon: '📵',
-          isDemo: true
-        },
-        {
-          id: 'd6',
-          type: 'curfew',
-          severity: 'HIGH',
-          location: 'Zone',
-          message: 'Local Curfew: Section 144 — Shahdara zone',
-          timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-          icon: '🚧',
-          isDemo: true
+          id: 'g2', type: 'safety', severity: 'HIGH', location: mockLocation,
+          message: 'Rider Safety Alert: Extreme humidity detected — stay hydrated',
+          timestamp: new Date(Date.now() - 15 * 60000).toISOString(), icon: '🥤',
         }
       ];
     }
 
+    // Combine Real Disruptions with Mock Data for Demo
+    disruptions = [...disruptions, ...mockAlerts];
+
     res.json({
-      location: weatherStatus.weather.location,
+      location: mockLocation,
       disruptions: disruptions.length > 0 ? disruptions : [],
       status: disruptions.length > 0 ? 'Active Disruptions' : 'All Clear',
       weather: weatherStatus.weather
