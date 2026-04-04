@@ -107,13 +107,15 @@ app.use((req, res, next) => {
 // ══════════════════════════════════════════════════════════════════════════
 // REGISTER ALL ROUTES
 // ══════════════════════════════════════════════════════════════════════════
-app.use('/api', disruptionsRouter);   // Live weather disruptions — works WITHOUT DB
-app.use('/api', triggersRouter);      // Weather trigger checks — works WITHOUT DB
-app.use('/api', chatRouter);          // AI chat — works WITHOUT DB
-app.use('/api', notificationsRouter); // Twilio WhatsApp notifications
-app.use('/api', usersRouter);         // User CRUD — requires Supabase
-app.use('/api', policiesRouter);      // Policy CRUD — requires Supabase
-app.use('/api', claimsRouter);        // Claims + Fraud AI — requires Supabase
+app.use('/api', disruptionsRouter);   // /api/disruptions/:pin
+app.use('/api', triggersRouter);      // /api/triggers/...
+app.use('/api/chat', chatRouter);     // /api/chat
+app.use('/api/notify', notificationsRouter); // /api/notify/...
+app.use('/api/users', usersRouter);   // /api/users/...
+app.use('/api/policies', policiesRouter); // /api/policies/...
+app.use('/api/claims', claimsRouter);   // /api/claims/...
+app.use('/api/payments', paymentsRouter); // /api/payments
+app.use('/api/admin', adminRouter);     // /api/admin/...
 
 // ══════════════════════════════════════════════════════════════════════════
 // TWILIO WHATSAPP - Direct endpoint

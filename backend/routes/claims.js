@@ -10,7 +10,7 @@ import { analyzeClaimFraud } from '../services/fraud_ai.js';
 
 const router = Router();
 
-router.post('/claims', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {
       user_id,
@@ -60,7 +60,7 @@ router.post('/claims', async (req, res) => {
   }
 });
 
-router.get('/claims/user/:userId', async (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ error: 'userId is required' });
@@ -76,7 +76,7 @@ router.get('/claims/user/:userId', async (req, res) => {
  * GET /api/claims
  * Fetch ALL claims (Admin)
  */
-router.get('/claims', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const claims = await getAllClaims();
     res.json(claims);
@@ -90,7 +90,7 @@ router.get('/claims', async (req, res) => {
  * PATCH /api/claims/:id
  * Update claim status (Approve/Reject)
  */
-router.patch('/claims/:id', async (req, res) => {
+router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

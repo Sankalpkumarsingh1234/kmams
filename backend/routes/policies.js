@@ -10,7 +10,7 @@ const TIERS = {
   premium: { base: 99, max_payout: 500000 },
 };
 
-router.post('/policies', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { user_id, tier, premium_weekly, max_payout } = req.body; // REVERTED premium -> premium_weekly
 

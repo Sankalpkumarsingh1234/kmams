@@ -126,7 +126,7 @@ function AppContent() {
   const [step, setStep] = useState(0);
   const [userData, setUserData] = useState({});
   const [showInsurer, setShowInsurer] = useState(false);
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true); // Default to login
   const contentRef = useRef(null);
   const isMobile = useIsMobile();
 

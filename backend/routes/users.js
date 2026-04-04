@@ -8,7 +8,7 @@ import {
 
 const router = Router();
 
-router.post('/users', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {
       email,
@@ -50,7 +50,7 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.get('/users/:userId', async (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ error: 'userId is required' });
@@ -62,7 +62,7 @@ router.get('/users/:userId', async (req, res) => {
   }
 });
 
-router.get('/users/:userId/claims', async (req, res) => {
+router.get('/:userId/claims', async (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) return res.status(400).json({ error: 'userId is required' });
