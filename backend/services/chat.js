@@ -1,74 +1,110 @@
 import axios from 'axios'
+import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 
-// URL for Groq
+// URLs for Groq
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 /**
- * Send message to Groq API for AI-powered responses
+ * Send message to an AI provider (Groq, OpenAI, or Anthropic)
  */
-export async function sendChatMessage(userMessage, userContext = {}) {
-  const apiKey = process.env.GROQ_API_KEY;
-
-  if (!apiKey) {
-    return {
-      success: false,
-      error: 'Groq API key not configured'
-    }
-  }
-
+export async function sendChatMessage(userMessage, userContext = {}, provider = 'groq') {
+  const systemPrompt = buildSystemPrompt(userContext)
 
   try {
-    // Build system prompt with user context
-    const systemPrompt = buildSystemPrompt(userContext)
-
-    const response = await axios.post(
-      GROQ_API_URL,
-      {
-        model: 'llama-3.1-8b-instant', // Free Groq model
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: userMessage
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 300,
-        top_p: 1
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    )
-
-    const reply = response.data.choices[0].message.content
-
-    return {
-      success: true,
-      reply,
-      model: response.data.model
+    if (provider === 'openai') {
+      return await sendOpenAIMessage(userMessage, systemPrompt)
+    } else if (provider === 'anthropic') {
+      return await sendAnthropicMessage(userMessage, systemPrompt)
+    } else {
+      return await sendGroqMessage(userMessage, systemPrompt)
     }
   } catch (error) {
-    console.error('Groq API error:', error.response?.data || error.message)
-
-    // Return a helpful error message
-    if (error.response?.status === 401) {
-      return {
-        success: false,
-        error: 'Invalid Groq API key'
-      }
-    }
-
+    console.error(`[AI Service] Error with ${provider}:`, error.message)
     return {
       success: false,
       error: error.message || 'Chat service unavailable'
     }
+  }
+}
+
+/**
+ * Handle OpenAI Request
+ */
+async function sendOpenAIMessage(userMessage, systemPrompt) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) return { success: false, error: 'OpenAI API key missing' }
+
+  const openai = new OpenAI({ apiKey })
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage }
+    ],
+    temperature: 0.7,
+    max_tokens: 500
+  })
+
+  return {
+    success: true,
+    reply: response.choices[0].message.content,
+    model: 'gpt-4o'
+  }
+}
+
+/**
+ * Handle Anthropic Request
+ */
+async function sendAnthropicMessage(userMessage, systemPrompt) {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return { success: false, error: 'Anthropic API key missing' }
+
+  const anthropic = new Anthropic({ apiKey })
+  const response = await anthropic.messages.create({
+    model: 'claude-3-5-sonnet-20240620',
+    max_tokens: 500,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userMessage }]
+  })
+
+  return {
+    success: true,
+    reply: response.content[0].text,
+    model: 'claude-3.5-sonnet'
+  }
+}
+
+/**
+ * Handle Groq Request (Current default)
+ */
+async function sendGroqMessage(userMessage, systemPrompt) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return { success: false, error: 'Groq API key not configured' }
+
+  const response = await axios.post(
+    GROQ_API_URL,
+    {
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage }
+      ],
+      temperature: 0.7,
+      max_tokens: 300
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+
+  return {
+    success: true,
+    reply: response.data.choices[0].message.content,
+    model: response.data.model
   }
 }
 
@@ -180,3 +216,4 @@ export default {
   sendChatMessage,
   getClaimRecommendation
 }
+
