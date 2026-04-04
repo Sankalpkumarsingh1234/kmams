@@ -135,45 +135,61 @@ function InsurerDashboard({ onBack }) {
 
         {insurerTab === "claims" && (
           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E0D9D0", overflow: "hidden", minHeight: 100 }}>
-             {loading && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>Loading live claims...</div>}
-             {error && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#EF4444" }}>{error}</div>}
-             {!loading && !error && claims.length === 0 && <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>No active claims detected.</div>}
+             {loading && (
+               <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>
+                 Loading live claims...
+               </div>
+             )}
+             {error && (
+               <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#EF4444" }}>
+                 {error}
+               </div>
+             )}
+             {!loading && !error && claims.length === 0 && (
+               <div style={{ padding: 20, textAlign: "center", fontSize: 12, color: "#6B6258" }}>
+                 No active claims detected.
+               </div>
+             )}
              
-             {claims.map((c, i) => (
-                <div key={c.id} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>{c.id.substring(0, 8).toUpperCase()}</span>
-                        <span style={{ fontSize: 10, color: "#6B6258" }}>{c.users?.name || "Rider"} · {c.trigger}</span>
-                      </div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1512" }}>₹{c.amount_triggered || c.amount}</div>
-                    </div>
-                    
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {c.status === 'paid' ? (
-                        <Badge text="PAID" color="#4CAF82" bg="#E8F5EE" />
-                      ) : c.status === 'rejected' ? (
-                        <Badge text="REJECTED" color="#EF4444" bg="#FEE2E2" />
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => updateClaimStatus(c.id, 'rejected')}
-                            style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #EF4444", background: "transparent", color: "#EF4444", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
-                          >Reject</button>
-                          <button 
-                            onClick={() => updateClaimStatus(c.id, 'paid')}
-                            style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#4CAF82", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
-                          >Approve</button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Real-time AI Fraud Score (Private to Admin) */}
-                  <FraudScoreVisualiser claim={c} />
-                </div>
-              ))}
+             {claims.map((c) => (
+               <div key={c.id} style={{ padding: "12px 14px", borderBottom: "1px solid #F5F0EB" }}>
+                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                   <div>
+                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                       <span style={{ fontSize: 12, fontWeight: 700, color: "#1A1512" }}>
+                         {c.id.substring(0, 8).toUpperCase()}
+                       </span>
+                       <span style={{ fontSize: 10, color: "#6B6258" }}>
+                         {c.users?.name || "Rider"} · {c.trigger}
+                       </span>
+                     </div>
+                     <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1512" }}>
+                       ₹{c.amount_triggered || c.amount}
+                     </div>
+                   </div>
+                   
+                   <div style={{ display: "flex", gap: 8 }}>
+                     {c.status === 'paid' ? (
+                       <Badge text="PAID" color="#4CAF82" bg="#E8F5EE" />
+                     ) : c.status === 'rejected' ? (
+                       <Badge text="REJECTED" color="#EF4444" bg="#FEE2E2" />
+                     ) : (
+                       <>
+                         <button 
+                           onClick={() => updateClaimStatus(c.id, 'rejected')}
+                           style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #EF4444", background: "transparent", color: "#EF4444", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                         >Reject</button>
+                         <button 
+                           onClick={() => updateClaimStatus(c.id, 'paid')}
+                           style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#4CAF82", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                         >Approve</button>
+                       </>
+                     )}
+                   </div>
+                 </div>
+                 <FraudScoreVisualiser claim={c} />
+               </div>
+             ))}
           </div>
         )}
 
